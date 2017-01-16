@@ -1,6 +1,6 @@
 '''
 Fitting function library.
-All functions are designed to accept input fromat (f,*p), where p contains all additional parameters.
+All Lorentzian-related functions are designed to accept input fromat (f,*p), where p contains all additional parameters.
 Input format (f,p) turns out to be inconvenient for scipy.optimize.curve_fit usage.
 '''
 import numpy as np
