@@ -114,8 +114,10 @@ def chooseT(Tmc,Tmct):
 def colorCode(iter):
 	'''
 	return color codes in HEX string
-	support max 12 colors
-	check http://colorbrewer2.org/ for more options
+	support max 24 colors
+	check http://colorbrewer2.org/
+	or http://tools.medialab.sciences-po.fr/iwanthue/
+	for more details.
 	'''
 	cc=["#ff1c44","#55ff5f","#a300af","#fff44d","#4a61d7","#ffa70e","#f066ff","#009732","#ff3fbf","#54ffbb","#990077","#bda300","#a783ff","#004105","#ff9bf4","#02eff3","#823628","#d4ffee","#4b003f","#ffb5a4","#162a3f","#009fea","#351400","#002f6b"]
 	return cc[iter]
