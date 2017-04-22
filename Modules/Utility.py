@@ -1,6 +1,7 @@
 '''
 Utility use functions. Designed to NOT have dependency on any home-made modules.
 '''
+import os, time
 import numpy as np
 from numpy import isnan,exp,log
 import pandas as pd
@@ -590,3 +591,29 @@ def fswpVsNmr(device,filenums,fswpfilepopt=None,nmrfilepopt=None):
 	mergepiece=pd.merge(fswppiece,nmrpiece)
 	return fswppiece,nmrpiece,mergepiece
 #=======================================================================
+def prepend_header(path,header):
+	'''
+	Prepend header content to existing file. The access and modify times of the file will be preserved. Extra '\r\n\n' is inserted between new header and the original content
+	Syntax:
+	-------
+	prepend_header(path,header)
+	Parameters:
+	-----------
+	path: path of the file to modify
+	header: the header content to be prepended.
+	Returns:
+	--------
+	None.
+	'''
+	epocha=os.path.getatime(path)
+	epochm=os.path.getmtime(path)
+	fo=open(path,mode='r+') # read and write
+	content=fo.read()
+	fo.seek(0) # move cursor to beginning of file
+	fo.write(header+'\r\n\n'+content) # prepend header w/ empty newline
+	fo.truncate() # necessary to keep out redundant date
+	fo.close()
+	os.utime(path,times=(epocha,epochm)) # restore access and modify time
+	return None
+#=======================================================================
+
