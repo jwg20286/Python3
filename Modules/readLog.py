@@ -156,3 +156,37 @@ class freqSweepLog(object):
 		vfindEpoch=np.vectorize(findEpoch)
 		self.epoch=vfindEpoch(self.datetime)
 #=======================================================================
+class sweepLog(object):
+	'''
+	sweep log class.
+	Syntax:
+	-------
+	swpl=swpLog(filename)
+	Returns:
+	--------
+	self._filename: str, sweep log filename.
+	self._content: pandas.DataFrame, entire log content.
+	self.item: pandas.Series, each item is one column with the same name (but lower case) in the content.
+	self._datetime: datetime.datetime, combination of date and time.
+	self._epoch: float, epoch seconds calculated from datetime.
+	'''
+	def __init__(self,filename):
+		self._filename=filename
+		self._content=pd.read_csv(filename,delim_whitespace=True,index_col=False)
+		col_names=self._content.columns.tolist()
+		for name in col_names:
+			# assign pandas.Series to attributes based on name
+			setattr(self,name.lower(),self._content[name])
+#-----------------------------------------------------------------------
+		# assign self._datetime
+		# only runs if 'date' and 'time' exists (case insensitive)
+		lower_col_names=[x.lower() for x in self._content.columns]
+		if 'date' and 'time' in lower_col_names:
+			vstrptime=np.vectorize(datetime.datetime.strptime)
+			self._datetime=vstrptime(self.date+' '+self.time, '%m/%d/%Y %H:%M:%S') # array of datetime.datetime dtype
+
+		# assign self._epoch.
+			findEpoch=lambda dt: (dt-datetime.datetime(1970,1,1,0,0,0)).total_seconds() #find epoch seconds of dt, which is of datetime.datetime type
+			vfindEpoch=np.vectorize(findEpoch)
+			self._epoch=vfindEpoch(self._datetime)
+#=======================================================================
