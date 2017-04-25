@@ -11,6 +11,8 @@ import Utility as utl
 class singleSweep(object):
 	'''
 	Class of a single sweep.
+	The sweep column headers are converted to lower cases when assigned to attributes, without underscore in front. Other attributes start with one underscore.
+	This class assumes that its instance and the log files have different headers for all their data columns.
 	Syntax:
 	-------
 	self=singleSweep(filename,logname=None[,correctFunc=utl.gainCorrect)

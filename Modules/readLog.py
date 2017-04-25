@@ -159,6 +159,7 @@ class freqSweepLog(object):
 class sweepLog(object):
 	'''
 	sweep log class.
+	The log column headers are converted to lower cases when assigned to attributes, without underscore in front. Other attributes start with one underscore.
 	Syntax:
 	-------
 	swpl=swpLog(filename)
