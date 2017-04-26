@@ -475,4 +475,92 @@ def fitChecknmr_file(filenmr,filepopt,tstep=2e-7,figsize=(16,5),wspace=0.4,hspac
 	lines=fitChecknmr(axes,data,popt,marker=marker,markersize=markersize,linewidth=linewidth,bbox_to_anchor=bbox_to_anchor,legloc=legloc,legsize=legsize)
 	return fig,axes,lines
 #=======================================================================
+def sweep_single(axis,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	Single sweep plot function designed for sweep.py->singleSweep.
+	Plot sweep data based on input plot mode on given axis.
+	This function does not create its own figure window.
+	Syntax:
+	-------
+	line=sweepSingle(axis,swpdata,pltmode[,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	axis: the axis to plot into.
+	swpdata: FreqSweep.FreqSweep class, has .f/.x/.y/.r attributes.
+	pltmode: examples: 'fX'=>f vs x, 'xy'=>x vs y, 'rfn'=>nr vs f, 'ygy'=>gy vs gy; only f,x,y,r are acceptable axes, will plot gain corrected by adding 'g' anywhere into pltmode, will plot normalized by adding 'n' anywhere into pltmode; pltmode is case insensitive.
+	iter_color/marker/linestyle,fillstyle,markeredgewidth,markersize,linewidth: axis settings.
+	legflag: show legend if true.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point, (0,0) is lower left of plot axis.
+	legsize: legend font size.
+	Returns:
+	-------
+	line: the plotted line's handle.
+	'''
+	def addgn(str,gn): #add string to 'x/y/r', will not change 'f'
+		str=str.replace('x',gn+'x')
+		str=str.replace('y',gn+'y')
+		str=str.replace('r',gn+'r')
+		return str
+
+	pltmode=pltmode.lower() #make input case insensitive
+	gflag=0
+	nflag=0
+	if 'g' in pltmode: #determine if gain correct plot is required
+		gflag=1
+	if 'n' in pltmode:
+		nflag=1
+	pltmode=pltmode.replace('g','')
+	pltmode=pltmode.replace('n','')
+	xis=pltmode[0]
+	yis=pltmode[1]
+	gn='g'*gflag+'n'*nflag
+	xis=addgn(xis,gn) # found what to use as x
+	yis=addgn(yis,gn) # found what to use as y
+
+	line=axis.plot(getattr(swpdata,xis).values,getattr(swpdata,yis).values,color=utl.colorCode(iter_color%utl.lencc()),marker=utl.markerCode(iter_marker%23),fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linestyle=utl.linestyleCode(iter_linestyle%4),linewidth=linewidth,label=swpdata._filename.split('.')[0]) #plot,rotates color,marker,linestyle
+	axis.set_xlabel(utl.mkAxLabel(pltmode[0])) #label axes
+	axis.set_ylabel(utl.mkAxLabel(pltmode[1]))
+	if legflag: # determine if show legend.
+		axis.legend(bbox_to_anchor=bbox_to_anchor,loc=legloc,prop={'size':legsize}) #legend format: 'device_filenum'
+	axis.grid()
+	return line
+#=======================================================================
+def sweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	Plot sweep data in a 'fx'+'fy'+'fr'+'xy' fashion.
+	This function does not create its own figure window.
+	Syntax:
+	-------
+	line=sweepAll(axes,swpdata,pltmode[,iter=0,fillstyle='full',markeredgewidth=0,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	axes: 2-by-2 axes matrix, dimensions beyond 0 and 1 will be ignored.
+	swpdata: FreqSweep.FreqSweep class, has .f/.x/.y/.r/.gx/.gy/.gr attributes.
+	pltmode: plot mode, supports 'x/y/r/all' and 'g/n'.
+	iter,fillstyle,markeredgewidth,markersize,linewidth: axis settings.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns:
+	--------
+	line: tuple with all 4 lines' handles
+	'''
+	gflag=0
+	nflag=0
+	if 'g' in pltmode:
+		gflag=1
+	if 'n' in pltmode:
+		nflag=1
+	
+	gn='g'*gflag+'n'*nflag
+	mode0=gn+'fx'
+	mode1=gn+'fy'
+	mode2=gn+'fr'
+	mode3=gn+'xy'
+	line0=sweep_single(axes[0][0],swpdata,mode0,fillstyle=fillstyle,iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+	line1=sweep_single(axes[0][1],swpdata,mode1,fillstyle=fillstyle,iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
+	line2=sweep_single(axes[1][0],swpdata,mode2,fillstyle=fillstyle,iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
+	line3=sweep_single(axes[1][1],swpdata,mode3,fillstyle=fillstyle,iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
+	return np.array(line0+line1+line2+line3)
 #=======================================================================
