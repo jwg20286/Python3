@@ -2,6 +2,7 @@
 sweep.py: Ver 1.0.
 Sweep object classes.
 '''
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -9,6 +10,7 @@ import readLog
 from readLog import sweepLog as swplog
 import Utility as utl
 import Plotting
+import Functions as func
 #=======================================================================
 class singleSweep(object):
 	'''
@@ -22,6 +24,7 @@ class singleSweep(object):
 	-----------
 	filename: str, filename of the loaded sweep file.
 	logname: str, log_file_name in which this file's metadata is stored.
+	fold: dict, divide a specified attribute by a given number, e.g. {'x':-1} will divide self.x by -1.
 	correctFunc: function, gain correcting function accounting for frequency rolloff of the lock in, etc.; used when 'g(n)x/y/r' are called.
 	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
 	Returns:
@@ -39,7 +42,7 @@ class singleSweep(object):
 	--when called:
 	self.(g)(n)x/y/r: pandas.Series, if x,y,r exist, they can be gain-corrected with the given correctFunc to account for lockin rolloff, etc.; they can be normalized by the given attribute specified by normByParam; 'gn' can appear together meaning both methods are implemented.
         '''
-	def __init__(self,filename,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'):
+	def __init__(self,filename,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'):
 		self._filename=filename
 		self._content=pd.read_csv(filename,delim_whitespace=True)
 		self._gcorrect=correctFunc
@@ -49,6 +52,9 @@ class singleSweep(object):
 		col_names=self._content.columns.tolist()
 		for name in col_names:
 			setattr(self,name.lower(),self._content[name]) 
+		# divide specified attribute by fold[name]
+		for name in fold:
+			setattr(self,name.lower(),getattr(self,name.lower())/fold[name])
 #-----------------------------------------------------------------------
 		# the log file row which contains the info associated with this sweep
 		if logname is not None:
@@ -156,7 +162,7 @@ class singleSweep(object):
 		setattr(self,'tmct',pd.Series(T))
 		return T
 #=======================================================================
-	def plot(self,pltmode,figsize=(12,7),wspace=0.4,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	def plot(self,pltmode,figsize=(12,7),wspace=0.4,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 		'''
 		Plot by having x- and y-axes assigned based on pltmode.
 		rotates through 12 colors, 23 markers, 4 linestyles	
@@ -165,27 +171,89 @@ class singleSweep(object):
 		fig,axes,line=self.plot(pltmode[,figsize=(12,7),wspace=0.4,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 		Parameters:
 		-----------
-		pltmode: example: 'fx'=>f vs x; 'xy'=>x vs y; 'rf'=>r vs f; 'yy'=>y vs y; only f,x,y,r are acceptable options.
+		pltmode: str or list_of_str, plot modes, example: 'fx'=>f vs x; 'xy'=>x vs y; 'rf'=>r vs f; 'yy'=>y vs y; only f,x,y,r are acceptable options.
 			pltmode=='all' will plot in a 'fx'+'fy'+'fr'+'xy' fashion
 			can plot .gx/.gy/.gr if add 'g' to pltmode, position/case insensitive, e.g. 'fgx'=='fxG'=='gFx','ALlg'=='gall', etc.
 			can plot .nx/.ny/.nr if add 'n' to pltmode, or plot .gnx/.gny/.gnr if both 'g' and 'n' in pltmode.
+			will raise error if for example pltmode=['gall','fx'], will not raise error if for example pltmode=['xy','all'], but everything other than 'all' will be ignored, and 'all' will be plotted.
 		iter_color/marker/linestyle,fillstyle,markeredgewidth,markersize,linewidth,figsize,wspace,hspace: axes and fig settings.
+		legflag: show legend if True.
 		legloc: legend location.
 		bbox_to_anchor: legend anchor point.
 		legsize: legend font size.
 		Returns:
 		--------
-		fig,axes,line: handles, line is a tuple of all line instances.
+		fig,axes,lines: handles, lines is a list of all line instances.
 		'''
-		pltmode=pltmode.lower()
-		if 'all' not in pltmode: #individual plot with input requirement
-			fig,axis=plt.subplots(1,1,figsize=figsize)
-			line=Plotting.sweep_single(axis,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
-			return fig,axis,line #returns fig,axie,line handles for future use
+		#pltmode=pltmode.lower()
+		if 'all' not in pltmode: #will raise error if for example pltmode=['gall','fx]
+			if not isinstance(pltmode,list or tuple):
+				pltmode=[pltmode] #make sure pltmode is list
+			fig,axis=plt.subplots(1,len(pltmode),figsize=figsize)
+			fig.subplots_adjust(wspace=wspace,hspace=hspace)
+			lines=Plotting.sweep_multiple(axis,self,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			#line=Plotting.sweep_single(axis,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			return fig,axis,lines #returns fig,axie,line handles for future use
 		else: #2*2 subplots of 'fx','fy','fr','xy'
 			fig,axes=plt.subplots(2,2,figsize=figsize)
 			fig.subplots_adjust(wspace=wspace,hspace=hspace)
-			line=Plotting.sweep_all(axes,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
-			return fig,axes,line
+			lines=Plotting.sweep_all(axes,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			return fig,axes,lines
 #=======================================================================
+	def lrtz_1simfit(self,fitmode,funcs1,funcs2,sharenum,p0,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+		'''
+		Simultaneously fit x-&y-channels, with x in front. Plot fitted curve if demanded.
+		Syntax:
+		-------
+		popt,pcov,perr,res,popt1,popt2[,fig,axes,lines]=lrtz1simfit(fitmode,funcs1,funcs2,sharenum,p0[,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor(0,1),legsize=10])
+		Parameters:
+		-----------
+		fitmode: only difference is if it contains 'g' or not, 'g' will introduce rolloff gain correct.
+		funcs1&2: function lists of models for simultaneous fitting.	
+		sharenum: number of parameters shared by funcs1&2.
+		p0: initial parameters guess.
+		folds1&2: function fold lists, corresponding to terms in funcs1&2.
+		frange: frequency range (low,high) bounds.
+		bounds: parameters bounds, check scipy.optimize.curve_fit input.
+		pltflag: if non-zero, will plot fitted curves for comparison.
+		figsize: figure size.
+		wspace,hspace: width/horizontal spacing between subplots.
+		markersize,linewidth: matplotlib.pyplot.plot inputs.
+		legloc: legend location.
+		bbox_to_anchor: legend anchor point.
+		legsize: legend font size.
+		Default for optional inputs:
+			folds1&2=np.ones(len(funcs1&2)),frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10.
+		Returns:
+		--------
+		popt: fitted parameters, folds1&2 influence removed.
+		pcov: 2d array, the estimated covariance of popt.
+		perr: standard deivation associated with popt.
+		res: residual = calculated values from popt - data values.
+		popt1&2: popt separated into two parts corresponding to funcs1&2.
+		fig: figure handle.
+		axes: 2x2 axes handles array.
+		lines: lines output from Plotting.fitCheckSim().
+		Note:
+		-----
+		Sets attributes self.popt/.popt1/.popt2 to popt/popt1/popt2, create these attributes if previously nonexistent.
+		fig/axes/lines: Only output when pltflag=1.
+		'''
+		if folds1 is None: # assign folds1&2's default values as ones.
+			folds1=np.ones(len(funcs1))
+		if folds2 is None:
+			folds2=np.ones(len(funcs2))
+		
+		if pltflag:
+			popt,pcov,perr,res,popt1,popt2,fig,axes,lines=func.lrtz1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag,figsize=figsize,wspace=wspace,hspace=hspace,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		else:
+			popt,pcov,perr,res,popt1,popt2=func.lrtz1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag)
 
+		setattr(self,'popt',popt) # set popt,popt1&2 as attributes
+		setattr(self,'popt1',popt1)
+		setattr(self,'popt2',popt2)
+
+		if pltflag:
+			return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
+		return popt,pcov,perr,res,popt1,popt2
+#=======================================================================

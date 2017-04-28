@@ -420,6 +420,30 @@ def range_condition(lb,ub,x):
 		OrCond=OrCond | condition
 	return AndCond,OrCond
 #=======================================================================
+def range_condition_series(lb,ub,x):
+	'''
+	Build condition based on x values that lie within the range between lb and ub.
+	Syntax:
+	-------
+	AndCond,OrCond=range_condition_series(lb,ub,x)
+	Parameters:
+	-----------
+	lb: np.array, lower bound.
+	ub: np.array, upper bound.
+	x: pandas.Series, x values based on which the range is chosen.
+	Returns:
+	--------
+	AndCond: pandas.Series, the strictest range condition, x[AndCond] is the intersection of all ranges.
+	OrCond: pandas.Series, he loosest range condition, x[OrCond] is the union of all ranges.
+	'''
+	AndCond=True
+	OrCond=False
+	for l,u in zip(lb,ub):
+		condition=x.between(l,u) # includes boundary points
+		AndCond=AndCond & condition
+		OrCond=OrCond | condition
+	return AndCond,OrCond
+#=======================================================================
 def build_condition(bounds,x):
 	'''
 	Build conditions based on x from input bounds.
@@ -438,6 +462,26 @@ def build_condition(bounds,x):
 	n=max(np.asarray(bounds[0]).size,np.asarray(bounds[1]).size) #choose the longer one's dimension as n
 	lb,ub=prepare_bounds(bounds,n)
 	AndCond,OrCond=range_condition(lb,ub,x)
+	return AndCond,OrCond
+#=======================================================================
+def build_condition_series(bounds,x):
+	'''
+	Build conditions based on x from input bounds.
+	Syntax:
+	-------
+	AndCond,OrCond=build_condition_series(bounds,x)
+	Parameters:
+	-----------
+	bounds: [lb,ub] format, if lb is not a list but a number, it will be resized to n-dim long; the same for ub. 
+	x: pandas.Series, x values based on which the conditions are produced.
+	Returns:
+	--------
+	AndCond: pandas.Series, the strictest range condition, x[AndCond] is the intersection of all ranges.
+	OrCond: pandas.Seires, the loosest range condition, x[OrCond] is the union of all ranges.
+	'''
+	n=max(np.asarray(bounds[0]).size,np.asarray(bounds[1]).size) #choose the longer one's dimension as n
+	lb,ub=prepare_bounds(bounds,n)
+	AndCond,OrCond=range_condition_series(lb,ub,x)
 	return AndCond,OrCond
 #=======================================================================
 def build_condition_dataframe(frange,dataframe,colname):

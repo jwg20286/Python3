@@ -264,6 +264,71 @@ def lrtz1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-np
 
 	return popt,pcov,perr,res,popt1,popt2
 #=======================================================================
+def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	Simultaneously fit x-&y-channels, with x in front. Plot fitted curve if demanded. Function designed for sweep.py.
+	Syntax:
+	-------
+	popt,pcov,perr,res,popt1,popt2,fig,axes,lines=lrtz1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0[,frange=(-inf,inf),bounds=(-inf,inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	data: sweep class data object.
+	fitmode: only difference is if it contains 'g' or not.
+	funcs1&2: function lists of models for simultaneous fitting.
+	folds1&2: function fold lists, corresponding to terms in funcs1&2.
+	sharenum: number of parameters shared by funcs1&2.
+	p0: initial parameters guess.
+	frange: frequency range (low,high) bounds. low/high can be a list or a single items.
+	bounds: parameters bounds, check scipy.optimize.curve_fit input.
+	pltflag: if non-zero, will plot fitted curves for comparison.
+	figsize: figure size.
+	wspace,hspace: width/horizontal spacing between subplots.
+	markersize,linewidth: matplotlib.pyplot.plot inputs.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns:
+	--------
+	popt: fitted parameters, folds1&2 influence removed.
+	pcov: 2d array, the estimated covariance of popt.
+	perr: standard deviation associated with popt.
+	res: residual = calculated values from popt - data values.
+	popt1&2: popt separated into two parts corresponding to funcs1&2.
+	fig: figure handle.
+	axes: 2x2 axes handles array.
+	lines: lines output from Plotting.fitChecksim().
+	'''
+	if 'g' in fitmode: #determine if gain correct fit is required
+		y1=data.gx
+		y2=data.gy
+	else:
+		y1=data.x
+		y2=data.y
+	
+	_,OrCond=utl.build_condition_series(frange,data.f)
+	x=data.f[OrCond].values # put data.f within frange into x
+	y1=y1[OrCond].values # truncate y1,y2 according to x, too
+	y2=y2[OrCond].values
+
+	y=np.concatenate((y1,y2)) #concatenate two channels to create signal
+	model1=assemble(funcs1,folds1) #create x model
+	model2=assemble(funcs2,folds2) #create y model
+	fitmodel=assembleShare(model1,model2,sharenum)
+
+	popt,pcov=scipy.optimize.curve_fit(fitmodel,x,y,p0=p0,bounds=bounds) #do fit, len(f)=1/2*len(y)
+	perr=np.sqrt(np.diag(pcov)) #standard deviation
+	res=fitmodel(x,*popt)-y #calculate residual before update popt
+
+	popt,popt1,popt2=paramUnfold(popt,funcs1,folds1,funcs2,folds2,sharenum)
+
+	if pltflag: #plot after update popt
+		fig,axes=plt.subplots(2,2,figsize=figsize)
+		fig.subplots_adjust(wspace=wspace,hspace=hspace)
+		lines=Plotting.fitCheckSim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
+
+	return popt,pcov,perr,res,popt1,popt2
+#=======================================================================
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     '''
 	Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
