@@ -324,7 +324,7 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 	if pltflag: #plot after update popt
 		fig,axes=plt.subplots(2,2,figsize=figsize)
 		fig.subplots_adjust(wspace=wspace,hspace=hspace)
-		lines=Plotting.fitCheckSim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		lines=Plotting.fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
 
 	return popt,pcov,perr,res,popt1,popt2

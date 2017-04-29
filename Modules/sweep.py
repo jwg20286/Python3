@@ -248,9 +248,9 @@ class singleSweep(object):
 			folds2=np.ones(len(funcs2))
 		
 		if pltflag:
-			popt,pcov,perr,res,popt1,popt2,fig,axes,lines=func.lrtz1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag,figsize=figsize,wspace=wspace,hspace=hspace,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			popt,pcov,perr,res,popt1,popt2,fig,axes,lines=func.lrtz_1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag,figsize=figsize,wspace=wspace,hspace=hspace,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		else:
-			popt,pcov,perr,res,popt1,popt2=func.lrtz1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag)
+			popt,pcov,perr,res,popt1,popt2=func.lrtz_1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag)
 
 		setattr(self,'popt',popt) # set popt,popt1&2 as attributes
 		setattr(self,'popt1',popt1)

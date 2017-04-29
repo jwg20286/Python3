@@ -703,4 +703,96 @@ def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normBy
 	
 	return fig,axes,lines
 #=======================================================================
+def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=(-np.inf,np.inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	Check sim fitting result and plot. Assume funcs1&2 as X&Y-channels, and sqrt(x**2+y**2) as R-channel. 
+	Syntax:
+	-------
+	lines=fitCheckSim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res[,frange=(-inf,inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	data: data with attributes f/x/y/r/gx/gy/gr
+	funcs1&2: function lists 1&2.
+	sharenum: number of parameters shared by funcs1&2.
+	popt1&2: fitting results for funcs1&2.
+	res: fitting residuals.
+	frange: frequency range (low,high) bounds.
+	markersize,linewidth: axes and fig settings.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns:
+	--------
+	lines: all plotted lines handles.
+	Note:
+	------
+	When plot fitted curves, they are within frange. The terms containing the shared parameters are considered main terms, and the rest are backgrounds.
+	'''
+	if 'g' in fitmode:
+		y1=data.gx.values
+		y2=data.gy.values
+		y3=data.gr.values
+	else:
+		y1=data.x.values
+		y2=data.y.values
+		y3=data.r.values
+	
+	_,OrCond=utl.build_condition_series(frange,data.f)
+	x=data.f[OrCond].values
+
+	model1=func.assemble(funcs1,np.ones(len(funcs1)))
+	model2=func.assemble(funcs2,np.ones(len(funcs2)))
+	out1=model1(x,*popt1)
+	out2=model2(x,*popt2)
+
+	n=1 #create main,bg functions, and their popt values pmain,pbg
+	while func.paramsize(func.assemble(funcs1[:n],np.ones(n)))<sharenum:
+		n+=1
+	main1=func.assemble(funcs1[:n],np.ones(n))
+	ps1=func.paramsize(main1) #param size of main1
+	pmain1=popt1[:ps1] # param main 1
+	out1m=main1(x,*pmain1)
+	#bg1=assemble(funcs1[n:],np.ones(len(funcs1)-n)) #can be used as an alternative tool to calculate background==out1-out1m.
+	#pbg1=popt1[ps1:]
+
+	n=1
+	while func.paramsize(func.assemble(funcs2[:n],np.ones(n)))<sharenum:
+		n+=1
+	main2=func.assemble(funcs2[:n],np.ones(n))
+	ps2=func.paramsize(main2)
+	pmain2=popt2[:ps2]
+	out2m=main2(x,*pmain2)
+	#bg2=assemble(funcs2[n:],np.ones(len(funcs2)-n)
+	#pbg2=popt2[ps2:]
+
+	line000=axes[0][0].plot(data.f.values,y1,color='k',marker='.',markersize=markersize,linewidth=0,label='Data points') # data points with full range
+	line001=axes[0][0].plot(x,out1,color='r',markersize=0,linestyle='-',linewidth=linewidth,label='Fit total') # fitted total with frange
+	line002=axes[0][0].plot(x,out1m,color='b',markersize=0,linestyle='-.',linewidth=linewidth,label='Shared component') #main terms within frange
+	line003=axes[0][0].plot(x,out1-out1m,color='g',markersize=0,linestyle='--',linewidth=linewidth,label='Background') #non-shared part is named as the background
+	axes[0][0].set_xlabel('Frequency (Hz)')
+	axes[0][0].set_ylabel('X-channel (Vpp)')
+	axes[0][0].grid()
+	axes[0][0].legend(loc=legloc,bbox_to_anchor=bbox_to_anchor,prop={'size':legsize}) #legend in X-channel
+
+	line010=axes[0][1].plot(data.f.values,y2,color='k',marker='.',markersize=markersize,linewidth=0)
+	line011=axes[0][1].plot(x,out2,color='r',markersize=0,linestyle='-',linewidth=linewidth)
+	line012=axes[0][1].plot(x,out2m,color='b',markersize=0,linestyle='-.',linewidth=linewidth)
+	line013=axes[0][1].plot(x,out2-out2m,color='g',markersize=0,linestyle='--',linewidth=linewidth)
+	axes[0][1].set_xlabel('Frequency (Hz)')
+	axes[0][1].set_ylabel('Y-channel (Vpp)')
+	axes[0][1].grid()
+	
+	line100=axes[1][0].plot(data.f.values,y3,color='k',marker='.',markersize=markersize,linewidth=0)
+	line101=axes[1][0].plot(x,np.sqrt(out1**2+out2**2),color='r',markersize=0,linestyle='-',linewidth=linewidth)
+	axes[1][0].set_xlabel('Frequency (Hz)')
+	axes[1][0].set_ylabel('R-channel (Vpp)')
+	axes[1][0].grid()
+
+	line110=axes[1][1].plot([x.min(),x.max()],[0,0],color='k',markersize=0,linestyle='-',linewidth=linewidth,label='Zero guideline')#0-guideline
+	line111=axes[1][1].plot(np.concatenate((x,x)),res,color='r',marker='.',markersize=markersize,linewidth=0,label='Residual') #residual
+	axes[1][1].set_xlabel('Frequency (Hz)')
+	axes[1][1].set_ylabel('Residual (Vpp)')
+	axes[1][1].grid()
+	return np.array([[line000+line001+line002+line003,line010+line011+line012+line013],[line100+line101,line110+line111]])
+#=======================================================================
 
