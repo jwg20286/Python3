@@ -11,9 +11,11 @@ import readLog
 import Functions as func
 import Utility as utl
 
+import sweep
 import FreqSweep
 import nmr
 
+from sweep import singleSweep as sswp
 from FreqSweep import FreqSweep as fswp
 from nmr import nmr
 
@@ -247,3 +249,89 @@ def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,me
 #-----------------------------------------------------------------------
 	return df_Mean,df_Std
 #=======================================================================
+def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,header_metadata=None,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None):
+	'''
+	Fit FreqSweep type data with lrtz1simfit method consecutively. Parse fitting result of each fit to the next fit.
+	Syntax:
+	-------
+	result=lrtzsimfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header[,header_metadata=None,ftimes=1,xtimes=1,ytimes=1,rtimes=1,correctFunc=utl.gainCorrect,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,logname=None,savename=None])
+	Parameters:
+	-----------
+	device: Device code, e.g. 'h1m','TF1201'.
+	filenums: File numbers to be fitted, (filelow,filehigh),fitting is done from filelow to filehigh, both filelow and filehigh can be either a list or a single item.
+	fitmode,funcs1,funcs2,sharenum,folds1,folds2,frange,bounds: lrtz1simfit fitting inputs.
+	p0: Initial fitting parameters for the first file.
+	header: list of str, headers corresponding to p0.
+	header_metadata: list of str, metadata of fitted files read from log.
+	f/x/y/rtimes,correctFunc,logname: File load parameters.
+	pMctCalib/mctBranch/Pn: parameters to update Tmct from MCT calibration and new Pn in the designated branch of melting curve. mctBranch='low' or 'high'.
+	savename: Result is written to this file.
+	Returns:
+	--------
+	result: pandas.DataFrame, fitted results, contains filename,NMR readings, excitation info as well.
+	'''
+	log=pd.read_csv(logname,delim_whitespace=True)
+
+	vfunc=np.vectorize(utl.mkFilename)#create filenames
+	filerange=(vfunc(device,filenums[0]),vfunc(device,filenums[1]))
+	#fetch the log associated with mems data to be fitted, use union of all ranges
+	_,OrCond=utl.build_condition_dataframe(filerange,log,'Filename') #take union all ranges
+	piece=log[OrCond] #these files will be fitted
+
+	#prepare to do consecutive fit
+	#create empty dataframe to store fitting results
+	length=len(piece.index)
+	index=np.linspace(0,length-1,length,dtype=int) #create index
+	#header0=['Filename','Epoch','BatchNum','VLow','Tmct','Tmm','NMRFilename','PLMDisplay','FilteredAbsSum']
+	header0=header_metadata
+	headerperr=[elem+'perr' for elem in header] #standard deviation headers
+	Header=header0+header+headerperr
+	result=pd.DataFrame(index=index,columns=Header) #empty dataframe
+
+	ind=0
+	print('Start-',end='') #progress indicator
+	for filename in piece['Filename']:
+		data=sswp(filename,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+		if pMctCalib is not None: # update data.Tmct and its relevant
+			_=data.mctC2T(pMctCalib,branch=mctBranch,Pn=Pn)
+		
+		#scale po according to excitation, this will scale phase as well.
+		if ind==0:
+			po=p0
+		else:
+			po=po*getattr(data,normByParam.lower())
+
+		# do fit, collect: optimized parameters, std dev, residual.
+		popt,_,perr,res,_,_=data.lrtz_1simfit(fitmode,funcs1,funcs2,sharenum,p0,folds1=folds1,folds2=folds2,frange=frange,bounds=bounds) #fit
+		po=popt/getattr(data,normByParam.lower()) #parse normalized fitted parameters to next fit, this will normalize phase as well, thus only applicable when phase and background terms are close to zero.
+
+		condition=[(cn not in header0) for cn in result.columns]
+		result.loc[ind][condition]=np.append(popt,perr) #assign fitted values
+		result.loc[ind]['Filename']=filename
+		result.loc[ind]['Epoch']=data._epoch
+		for name in header0:
+			if name not in ['Filename','Epoch']:
+				result.loc[ind][name]=getattr(data,name.lower())
+		'''
+		#quoted 
+		result.loc[ind]['Epoch']=data.epoch
+		result.loc[ind]['BatchNum']=data.batchnum
+		result.loc[ind]['VLow']=data.vl
+		result.loc[ind]['Tmct']=data.avgTmct
+		result.loc[ind]['Tmm']=data.Tmm
+		result.loc[ind]['NMRFilename']=data.nmrfilename
+		result.loc[ind]['PLMDisplay']=data.plm
+		result.loc[ind]['FilteredAbsSum']=data.nmrfilter
+		'''
+		ind+=1
+		print('-%s_%.2f%%-'%(re.sub(r'[^0-9]','',filename)[1::],(ind/length*100)),end='') #update batch progress
+	print('-Finished',end='')
+	
+	if savename is not None: #save to specified file
+		if os.path.isfile(savename): #file already exists
+			result.to_csv(savename,sep='\t',mode='a',na_rep=np.nan,index=False,header=False,float_format='%.12e'.format)#append w/o header
+		else: #file doesn't exist
+			result.to_csv(savename,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save
+	return result
+#=======================================================================
+

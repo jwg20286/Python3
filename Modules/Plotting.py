@@ -708,7 +708,7 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	Check sim fitting result and plot. Assume funcs1&2 as X&Y-channels, and sqrt(x**2+y**2) as R-channel. 
 	Syntax:
 	-------
-	lines=fitCheckSim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res[,frange=(-inf,inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	lines=fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res[,frange=(-inf,inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 	Parameters:
 	-----------
 	data: data with attributes f/x/y/r/gx/gy/gr
@@ -794,5 +794,38 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	axes[1][1].set_ylabel('Residual (Vpp)')
 	axes[1][1].grid()
 	return np.array([[line000+line001+line002+line003,line010+line011+line012+line013],[line100+line101,line110+line111]])
+#=======================================================================
+def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,logname=None,fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	'''
+
+	from sweep import singleSweep as sswp
+
+	popt=utl.fswpFitLoad(filename,filepopt,header) #fetch popt
+	data=sswp(filename,fold=fold,correctFunc=utl.gainCorrect,logname=logname,normByParam=normByParam)
+	if 'g' in fitmode:
+		y1=data.gx
+		y2=data.gy
+	else:
+		y1=data.x
+		y2=data.y
+	
+	folds1=np.ones(len(funcs1))
+	folds2=np.ones(len(funcs2))
+	_,OrCond=utl.build_condition_series(frange,data.f)
+	x=data.f[OrCond].values
+	y1=y1[OrCond].values
+	y2=y2[OrCond].values
+	y=np.concatenate((y1,y2))
+	model1=func.assemble(funcs1,folds1)
+	model2=func.assemble(funcs2,folds2)
+	fitmodel=func.assembleShare(model1,model2,sharenum)
+	res=fitmodel(x,*popt)-y
+
+	_,popt1,popt2=func.paramUnfold(popt,funcs1,folds1,funcs2,folds2,sharenum)
+	fig,axes=plt.subplots(2,2,figsize=figsize)
+	fig.subplots_adjust(wspace=wspace,hspace=hspace)
+	lines=fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+	return fig,axes,lines
 #=======================================================================
 

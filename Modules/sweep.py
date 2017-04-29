@@ -19,12 +19,12 @@ class singleSweep(object):
 	This class assumes that its instance and the log files have different headers for all their data columns.
 	Syntax:
 	-------
-	self=singleSweep(filename,[logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
+	self=singleSweep(filename,[fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
 	Parameters:
 	-----------
 	filename: str, filename of the loaded sweep file.
-	logname: str, log_file_name in which this file's metadata is stored.
 	fold: dict, divide a specified attribute by a given number, e.g. {'x':-1} will divide self.x by -1.
+	logname: str, log_file_name in which this file's metadata is stored.
 	correctFunc: function, gain correcting function accounting for frequency rolloff of the lock in, etc.; used when 'g(n)x/y/r' are called.
 	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
 	Returns:
