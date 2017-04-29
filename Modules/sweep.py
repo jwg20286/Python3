@@ -162,13 +162,13 @@ class singleSweep(object):
 		setattr(self,'tmct',pd.Series(T))
 		return T
 #=======================================================================
-	def plot(self,pltmode,figsize=(12,7),wspace=0.4,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	def plot(self,pltmode,subplots_layout=None,figsize=(12,7),wspace=0.4,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 		'''
 		Plot by having x- and y-axes assigned based on pltmode.
 		rotates through 12 colors, 23 markers, 4 linestyles	
 		Syntax:
 		-------
-		fig,axes,line=self.plot(pltmode[,figsize=(12,7),wspace=0.4,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+		fig,axes,line=self.plot(pltmode[,subplots_layout=None,figsize=(12,7),wspace=0.4,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 		Parameters:
 		-----------
 		pltmode: str or list_of_str, plot modes, example: 'fx'=>f vs x; 'xy'=>x vs y; 'rf'=>r vs f; 'yy'=>y vs y; only f,x,y,r are acceptable options.
@@ -176,7 +176,7 @@ class singleSweep(object):
 			can plot .gx/.gy/.gr if add 'g' to pltmode, position/case insensitive, e.g. 'fgx'=='fxG'=='gFx','ALlg'=='gall', etc.
 			can plot .nx/.ny/.nr if add 'n' to pltmode, or plot .gnx/.gny/.gnr if both 'g' and 'n' in pltmode.
 			will raise error if for example pltmode=['gall','fx'], will not raise error if for example pltmode=['xy','all'], but everything other than 'all' will be ignored, and 'all' will be plotted.
-		iter_color/marker/linestyle,fillstyle,markeredgewidth,markersize,linewidth,figsize,wspace,hspace: axes and fig settings.
+		iter_color/marker/linestyle,fillstyle,markeredgewidth,markersize,linewidth,subplots_layout,figsize,wspace,hspace: axes and fig settings.
 		legflag: show legend if True.
 		legloc: legend location.
 		bbox_to_anchor: legend anchor point.
@@ -189,7 +189,10 @@ class singleSweep(object):
 		if 'all' not in pltmode: #will raise error if for example pltmode=['gall','fx]
 			if not isinstance(pltmode,list or tuple):
 				pltmode=[pltmode] #make sure pltmode is list
-			fig,axis=plt.subplots(1,len(pltmode),figsize=figsize)
+			if subplots_layout is not None: #layout given
+				fig,axis=plt.subplots(subplots_layout[0],subplots_layout[1],figsize=figsize)
+			else: #layout not given => plot in a row
+				fig,axis=plt.subplots(1,len(pltmode),figsize=figsize)
 			fig.subplots_adjust(wspace=wspace,hspace=hspace)
 			lines=Plotting.sweep_multiple(axis,self,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 			#line=Plotting.sweep_single(axis,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)

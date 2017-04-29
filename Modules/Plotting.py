@@ -574,6 +574,7 @@ def sweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_mark
 	if not isinstance(pltmodes,list or tuple):
 		pltmodes=[pltmodes] # make sure pltmodes is a list
 	
+	#three lists with 'gn' removed
 	pm_list=[]
 	xis_list=[]
 	yis_list=[]
@@ -638,12 +639,12 @@ def sweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,i
 	#return np.array(line0+line1+line2+line3)
 	return lines
 #=======================================================================
-def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 	'''
 	Plots multiple curves in the same figure. When reading the data, this function uses the default correctFunc in FreqSweep.FreqSweep class object.
 	Syntax:
 	-------
-	fig,axes,lines=sweeps_multiple(device,file#1,...,file#N,fold1,...,foldN,logname=log_file_path[,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	fig,axes,lines=sweeps_multiple(device,file#1,...,file#N,fold1,...,foldN,logname=log_file_path[,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
 	fig,axes,lines=axes,sweeps_multiple(device,file#1,...,file#N,'fold'[,...])
 	Parameters
 	----------
@@ -653,6 +654,7 @@ def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normBy
 	logname: str, sweeps log path.
 	correctFunc: frequency roll-off correcting function.
 	pltmode: plot mode, supports extra 'g/n'.
+	subplots_layout: 1x2 tuple, matplotlib.subplots row & column numbers.
 	figsize,wspace,hspace,iter,fillstyle,markeredgewidth,markersize,linewidth: fig and axes settings.
 	legflag: boolean, show legend if True.
 	legloc: legend location.
@@ -676,7 +678,9 @@ def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normBy
 	
 	#fig,axes=plt.subplots(2,2,figsize=figsize)
 	#fig.subplots_adjust(wspace=wspace,hspace=hspace)
-	if 'all' not in pltmode:
+	if subplots_layout is not None:
+		fig,axes=plt.subplots(subplots_layout[0],subplots_layout[1],figsize=figsize)
+	elif 'all' not in pltmode:
 		if not isinstance(pltmode,list or tuple):
 			pltmode=[pltmode]
 		fig,axes=plt.subplots(1,len(pltmode),figsize=figsize)
