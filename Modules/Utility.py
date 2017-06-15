@@ -660,4 +660,26 @@ def prepend_header(path,header):
 	os.utime(path,times=(epocha,epochm)) # restore access and modify time
 	return None
 #=======================================================================
+def remove_header(path):
+	'''
+	Remove first line of a given file. The access and modify times of the file will be preserved.
+	Syntax:
+	-------
+	remove_header(path)
+	Parameters:
+	-----------
+	path: path of the file to modify.
+	Returns:
+	--------
+	None.
+	'''
+	epocha=os.path.getatime(path)
+	epochm=os.path.getmtime(path)
+	with open(path,'r') as fin:
+		data=fin.read().splitlines(True)
+	with open(path,'w') as fout:
+		fout.writelines(data[1:])
+	os.utime(path,times=(epocha,epochm)) # restore access and modify time
+	return None
+#=======================================================================
 
