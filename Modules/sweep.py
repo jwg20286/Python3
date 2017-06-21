@@ -5,6 +5,7 @@ Sweep object classes.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import ntpath
 
 import readLog
 from readLog import sweepLog as swplog
@@ -22,7 +23,7 @@ class singleSweep(object):
 	self=singleSweep(filename,[fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
 	Parameters:
 	-----------
-	filename: str, filename of the loaded sweep file.
+	filepath: str, file path of the loaded sweep file.
 	fold: dict, divide a specified attribute by a given number, e.g. {'x':-1} will divide self.x by -1.
 	logname: str, log_file_name in which this file's metadata is stored.
 	correctFunc: function, gain correcting function accounting for frequency rolloff of the lock in, etc.; used when 'g(n)x/y/r' are called.
@@ -43,7 +44,7 @@ class singleSweep(object):
 	self.(g)(n)x/y/r: pandas.Series, if x,y,r exist, they can be gain-corrected with the given correctFunc to account for lockin rolloff, etc.; they can be normalized by the given attribute specified by normByParam; 'gn' can appear together meaning both methods are implemented.
         '''
 	def __init__(self,filename,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'):
-		self._filename=filename
+		self._filename=ntpath.basename(filename)
 		self._content=pd.read_csv(filename,delim_whitespace=True)
 		self._gcorrect=correctFunc
 		self._normByParam=normByParam.lower()
@@ -60,7 +61,7 @@ class singleSweep(object):
 		if logname is not None:
 			self._logname=logname
 			swpl=swplog(logname)
-			matchCond=swpl.filename==filename #search for the row representing row of designated filename, this is assumed to be contained in the attribute 'filename' of swpl.
+			matchCond=swpl.filename==self._filename #search for the row representing row of designated filename, this is assumed to be contained in the attribute 'filename' of swpl.
 			self._log=swpl._content[matchCond] # get specific log row
 			if not self._log.empty: # if log match is found, load log info to individual attributes
 				for name in self._log.columns:
@@ -186,7 +187,7 @@ class singleSweep(object):
 		fig,axes,lines: handles, lines is a list of all line instances.
 		'''
 		#pltmode=pltmode.lower()
-		if 'all' not in pltmode: #will raise error if for example pltmode=['gall','fx]
+		if 'all' not in pltmode: #will raise error if for example pltmode=['gall','fx']
 			if not isinstance(pltmode,list or tuple):
 				pltmode=[pltmode] #make sure pltmode is list
 			if subplots_layout is not None: #layout given
