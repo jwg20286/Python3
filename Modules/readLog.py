@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import datetime
+import ntpath
 
 #=======================================================================
 class mctLog(object):
@@ -172,7 +173,7 @@ class sweepLog(object):
 	self._epoch: float, epoch seconds calculated from datetime.
 	'''
 	def __init__(self,filename):
-		self._filename=filename
+		self._filename=ntpath.basename(filename)
 		self._content=pd.read_csv(filename,delim_whitespace=True,index_col=False)
 		col_names=self._content.columns.tolist()
 		for name in col_names:

@@ -59,7 +59,7 @@ class singleSweep(object):
 #-----------------------------------------------------------------------
 		# the log file row which contains the info associated with this sweep
 		if logname is not None:
-			self._logname=logname
+			self._logname=ntpath.basename(logname)
 			swpl=swplog(logname)
 			matchCond=swpl.filename==self._filename #search for the row representing row of designated filename, this is assumed to be contained in the attribute 'filename' of swpl.
 			self._log=swpl._content[matchCond] # get specific log row
