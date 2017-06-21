@@ -32,10 +32,11 @@ class singleSweep(object):
 	--------
 	self._filename: str, loaded filename.
 	self._content: pandas.DataFrame, entire sweep content.
-	self._gcorrect: gain correct function.
+	self._gcorrect: function, gain correct function.
+	self._normByParam: str, x/y/r can be divided by this parameter.
 	self.item: pandas.Series, each item is one column with the same name (but lower case) in the content.
-	self._logname: log file name.
-	self._log: row of log content corresponding to this sweep file.
+	self._logname: str, log file name.
+	self._log: pandas.DataFrame, row of log content corresponding to this sweep file.
 	self.logitem: each logitem is one item with the same name in the self._log.
 	self._datetime: datetime.datetime, datetime of the loaded sweep file.
 	self._epoch: float, epoch seconds of the loaded sweep file.

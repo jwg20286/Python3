@@ -1,3 +1,7 @@
+'''
+readLog.py: Ver 1.1.
+Log object classes.
+'''
 import numpy as np
 import pandas as pd
 import datetime
