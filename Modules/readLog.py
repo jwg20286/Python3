@@ -169,8 +169,8 @@ class sweepLog(object):
 	self._filename: str, sweep log filename.
 	self._content: pandas.DataFrame, entire log content.
 	self.item: pandas.Series, each item is one column with the same name (but lower case) in the content.
-	self._datetime: datetime.datetime, combination of date and time.
-	self._epoch: float, epoch seconds calculated from datetime.
+	self._datetime: pandas.Series, contains datetime.datetime, combination of date and time.
+	self._epoch: pandas.Series, contains float, epoch seconds calculated from datetime.
 	'''
 	def __init__(self,filename):
 		self._filename=ntpath.basename(filename)
@@ -185,10 +185,12 @@ class sweepLog(object):
 		lower_col_names=[x.lower() for x in self._content.columns]
 		if 'date' and 'time' in lower_col_names:
 			vstrptime=np.vectorize(datetime.datetime.strptime)
-			self._datetime=vstrptime(self.date+' '+self.time, '%m/%d/%Y %H:%M:%S') # array of datetime.datetime dtype
+			datetime_array=vstrptime(self.date+' '+self.time, '%m/%d/%Y %H:%M:%S') # array of datetime.datetime dtype
+			self._datetime=pd.Series(datetime_array,dtype=object) # convert to pandas.Series of datetime.datetime
 
 		# assign self._epoch.
 			findEpoch=lambda dt: (dt-datetime.datetime(1970,1,1,0,0,0)).total_seconds() #find epoch seconds of dt, which is of datetime.datetime type
 			vfindEpoch=np.vectorize(findEpoch)
-			self._epoch=vfindEpoch(self._datetime)
+			epoch_array=vfindEpoch(self._datetime)
+			self._epoch=pd.Series(epoch_array)
 #=======================================================================
