@@ -162,6 +162,7 @@ def nmrsimfit_batch(filenums,p0,window_size,order,device='NMR',tstep=2e-7,zerofi
 #=======================================================================
 def logMean_single(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,meanAxis=0):
 	'''
+	2017-06-22 15:13
 	Average specific part of a log file and output the average and standard deviation as two separate pandas.series.
 	Syntax:
 	-------
@@ -194,10 +195,11 @@ def logMean_single(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=
 #=======================================================================
 def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,meanAxis=0,saveflag=False,savename=None):
 	'''
+	2017-06-22 15:18
 	Average specific part of a log file and output the average and standard deviation as two dataframes.
 	Syntax:
 	-------
-	df_Mean,df_Std=logMean_single(logname,frange,colname,droplabels=None,dropAxis=1,meanAxis=0)
+	df_Mean,df_Std=logMean(logname,frange,colname,droplabels=None,dropAxis=1,meanAxis=0,saveflag=False,savename=None)
 	Parameters:
 	-----------
 	logname: log data file name.
@@ -208,6 +210,7 @@ def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,me
 	drop_track: boolean, if True, include the 1st&last rows of the dropped columns as extra columns in output.
 	meanAxis: dataframe.mean/std axis, 0 means average the column values.
 	saveflag: boolean, save outputs if true. Mean and standard deviation will be saved to 2 different files, which with a filename similar to logname, but an extra tail appended, the tail for mean is '_MeanCurrentDate', for standard deviation is '_StdCurrentDate'.
+	savename: list of str, [savename_mean, savename_std], df_Mean will be saved to savename_mean, and df_Std will be saved to savename_Std. When savename is given, saveflag is forced to be True.
 	Returns:
 	--------
 	df_Mean: pandas.DataFrame, mean of the chosen piece of data, numeric only, if drop_track==True, the rest of the columns in logfile will also be included.
@@ -235,18 +238,21 @@ def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,me
 	elif savename is not None : # if savename specified, do not care saveflag anymore
 		savename_mean=savename[0]
 		savename_std=savename[1]
-
-	if savename is not None :# save df_Mean and df_Std to new files, or append to existing files
+		saveflag=True # froce flag to be True if not yet True
+#-----------------------------------------------------------------------
+	# save df_Mean and df_Std to new files, or append to existing files
+	if saveflag is True:	
 		if os.path.isfile(savename_mean): #file already exists
-			df_Mean.to_csv(savename_mean,sep='\t',mode='a',na_rep=np.nan,index=False,header=False,float_format='%.12e'.format)#append w/o header
+			#df_Mean.to_csv(savename_mean,sep='\t',mode='a',na_rep=np.nan,index=False,header=False,float_format='%.12e'.format)#append w/o header # looks like float_format is causing problem where a bunch of % or $ are saved instead of the actual data
+			df_Mean.to_csv(savename_mean,sep='\t',mode='a',na_rep=np.nan,index=False,header=False)#append w/o header
 		else : #file doesn't exist
-			df_Mean.to_csv(savename_mean,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save	
+			df_Mean.to_csv(savename_mean,sep='\t',na_rep=np.nan,index=False) #create new file and save	
 			# save df_Std to another file
 
 		if os.path.isfile(savename_std): #file already exists
-			df_Std.to_csv(savename_std,sep='\t',mode='a',na_rep=np.nan,index=False,header=False,float_format='%.12e'.format)
+			df_Std.to_csv(savename_std,sep='\t',mode='a',na_rep=np.nan,index=False,header=False)
 		else : #file doesn't exist
-			df_Std.to_csv(savename_std,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save
+			df_Std.to_csv(savename_std,sep='\t',na_rep=np.nan,index=False) #create new file and save
 #-----------------------------------------------------------------------
 	return df_Mean,df_Std
 #=======================================================================
