@@ -133,30 +133,45 @@ def paramUnfold(popt,funcs1,folds1,funcs2,folds2,sharenum):
 #=======================================================================
 def paramGuess(data,fitmode='noCorrect'):
 	'''
+	2017-06-22 17:52
 	Guess A,d,f0 from given data x-channel.
 	Syntax:
 	-------
 	[A,d,f0]=paramGuess(data,fitmode='string')
 	Parameters:
 	-----------
-	data: FreqSweep class, with .f/.x/.gx attributes.
-	fitmode: fit mode, x=data.gx instead of .x if 'g' in fitmode, default is 'noCorrect'.
+	data: sweep.freqSweep class, with .f/.r/.gr attributes.
+	fitmode: fit mode, x=data.gr instead of .r if 'g' in fitmode, default is 'noCorrect'.
 	Returns:
 	--------
 	[A,d,f0]: list, contains A,d,f0 from lrtz model.
 	'''
-	if 'g' in fitmode:
-		x=data.gx
-	else:
-		x=data.x
+	# deprecated version for FreqSweep.FreqSweep
+	#if 'g' in fitmode:
+	#	x=data.gx
+	#else:
+	#	x=data.x
 
-	peak=x.max()
-	f0=data.f[x==peak][0] #resonance freq
-	condition=data.x<=data.x.max()/2 #at x no larger than max
-	f1=data.f[condition&(data.f<f0)].max() # FWHM lower freq
-	f2=data.f[condition&(data.f>f0)].min() # FWHM higher freq
+	#peak=x.max()
+	#f0=data.f[x==peak][0] #resonance freq
+	#condition=data.x<=data.x.max()/2 #at x no larger than max
+	#f1=data.f[condition&(data.f<f0)].max() # FWHM lower freq
+	#f2=data.f[condition&(data.f>f0)].min() # FWHM higher freq
+	
+	if 'g' in fitmode:
+		r=data.gr
+	else:
+		r=data.r
+	
+	peak=r.max() # peak height
+	peak_idx=r.idxmax() # the index of the maximum r point
+	f0=data.f[peak_idx] # resonance freq
+	condition=data.r>=data.r.max()/2 # find higher half of peak
+	fwhm_range=data.f[condition] # full-width-half-maximum range
+	f1=fwhm_range.min()
+	f2=fwhm_range.max()
 	d=f2-f1 #width
-	A=4*np.pi**2*peak*d*f0
+	A=4*np.pi**2*peak*d*f0 # peak amplitude
 	return [A,d,f0]
 #=======================================================================
 def lrtz1fit(data,fitmode,funcs,folds,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf)):
