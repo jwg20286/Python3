@@ -13,14 +13,15 @@ import Utility as utl
 import Plotting
 import Functions as func
 #=======================================================================
-class singleSweep(object):
+class freqSweep(object):
 	'''
+	2017-06-22 11:16
 	Class of a single sweep.
 	The sweep column headers are converted to lower cases when assigned to attributes, without underscore in front. Other attributes start with one underscore.
 	This class assumes that its instance and the log files have different headers for all their data columns.
 	Syntax:
 	-------
-	self=singleSweep(filename,[fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
+	self=freqSweep(filename,[fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
 	Parameters:
 	-----------
 	filepath: str, file path of the loaded sweep file.
@@ -196,13 +197,12 @@ class singleSweep(object):
 			else: #layout not given => plot in a row
 				fig,axis=plt.subplots(1,len(pltmode),figsize=figsize)
 			fig.subplots_adjust(wspace=wspace,hspace=hspace)
-			lines=Plotting.sweep_multiple(axis,self,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
-			#line=Plotting.sweep_single(axis,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			lines=Plotting.freqSweep_multiple(axis,self,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 			return fig,axis,lines #returns fig,axie,line handles for future use
 		else: #2*2 subplots of 'fx','fy','fr','xy'
 			fig,axes=plt.subplots(2,2,figsize=figsize)
 			fig.subplots_adjust(wspace=wspace,hspace=hspace)
-			lines=Plotting.sweep_all(axes,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			lines=Plotting.freqSweep_all(axes,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 			return fig,axes,lines
 #=======================================================================
 	def lrtz_1simfit(self,fitmode,funcs1,funcs2,sharenum,p0,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):

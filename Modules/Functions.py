@@ -269,7 +269,7 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 	Simultaneously fit x-&y-channels, with x in front. Plot fitted curve if demanded. Function designed for sweep.py.
 	Syntax:
 	-------
-	popt,pcov,perr,res,popt1,popt2,fig,axes,lines=lrtz1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0[,frange=(-inf,inf),bounds=(-inf,inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	popt,pcov,perr,res,popt1,popt2[,fig,axes,lines]=lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0[,frange=(-inf,inf),bounds=(-inf,inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 	Parameters:
 	-----------
 	data: sweep class data object.
@@ -294,9 +294,11 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 	perr: standard deviation associated with popt.
 	res: residual = calculated values from popt - data values.
 	popt1&2: popt separated into two parts corresponding to funcs1&2.
+	+++
+	if pltflag=True:
 	fig: figure handle.
 	axes: 2x2 axes handles array.
-	lines: lines output from Plotting.fitChecksim().
+	lines: lines output from Plotting.fitCheck_1sim().
 	'''
 	if 'g' in fitmode: #determine if gain correct fit is required
 		y1=data.gx

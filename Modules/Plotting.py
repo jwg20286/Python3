@@ -127,7 +127,7 @@ def sweepsAll(device,*args,logname=None,correctFunc=utl.gainCorrect,pltmode='all
 	------
 	logname is not optional.
 	'''
-	from FreqSweep import FreqSweep as fswp
+	from FreqSweep import FreqSweep as freqswp
 
 	pltmode=pltmode.lower() #make input case insensitive
 	if isinstance(args[-1],str): #construct filenums and folds lists
@@ -144,7 +144,7 @@ def sweepsAll(device,*args,logname=None,correctFunc=utl.gainCorrect,pltmode='all
 	
 	lines=[]
 	for filenum,fold in zip(filenums,folds):
-		swpdata=fswp(utl.mkFilename(device,filenum),xtimes=1/fold,ytimes=1/fold,rtimes=1/fold,correctFunc=correctFunc,logname=logname)
+		swpdata=freqswp(utl.mkFilename(device,filenum),xtimes=1/fold,ytimes=1/fold,rtimes=1/fold,correctFunc=correctFunc,logname=logname)
 		line=sweepAll(axes,swpdata,pltmode,iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		lines.append(line)
 		iter+=1
@@ -368,10 +368,10 @@ def fitCheckSim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=
 #=======================================================================
 def fitCheckSim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,logname=None,ftimes=1,xtimes=1,ytimes=1,rtimes=1,correctFunc=utl.gainCorrect,frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 
-	from FreqSweep import FreqSweep as fswp
+	from FreqSweep import FreqSweep as freqswp
 
 	popt=utl.fswpFitLoad(filename,filepopt,header)
-	data=fswp(filename,ftimes=ftimes,xtimes=xtimes,ytimes=ytimes,rtimes=rtimes,correctFunc=utl.gainCorrect,logname=logname)
+	data=freqswp(filename,ftimes=ftimes,xtimes=xtimes,ytimes=ytimes,rtimes=rtimes,correctFunc=utl.gainCorrect,logname=logname)
 	if 'g' in fitmode:
 		y1=data.gx
 		y2=data.gy
@@ -475,18 +475,19 @@ def fitChecknmr_file(filenmr,filepopt,tstep=2e-7,figsize=(16,5),wspace=0.4,hspac
 	lines=fitChecknmr(axes,data,popt,marker=marker,markersize=markersize,linewidth=linewidth,bbox_to_anchor=bbox_to_anchor,legloc=legloc,legsize=legsize)
 	return fig,axes,lines
 #=======================================================================
-def sweep_single(axis,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def freqSweep_single(axis,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
-	Single sweep plot function designed for sweep.py->singleSweep.
+	2017-06-22 11:37
+	Single sweep plot function designed for sweep.py->freqSweep.
 	Plot sweep data based on input plot mode on given axis.
 	This function does not create its own figure window.
 	Syntax:
 	-------
-	line=sweep_single(axis,swpdata,pltmode[,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	line=freqSweep_single(axis,swpdata,pltmode[,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 	Parameters:
 	-----------
 	axis: the axis to plot into.
-	swpdata: sweep.singleSweep class, has .f/.x/.y/.r attributes.
+	swpdata: sweep.freqSweep class, has .f/.x/.y/.r attributes.
 	pltmode: examples: 'fX'=>f vs x, 'xy'=>x vs y, 'rfn'=>nr vs f, 'ygy'=>gy vs gy; only f,x,y,r are acceptable axes, will plot gain corrected by adding 'g' anywhere into pltmode, will plot normalized by adding 'n' anywhere into pltmode; pltmode is case insensitive.
 	iter_color/marker/linestyle,fillstyle,markeredgewidth,markersize,linewidth: axis settings.
 	legflag: show legend if true.
@@ -526,12 +527,13 @@ def sweep_single(axis,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=
 	axis.grid()
 	return line
 #=======================================================================
-def sweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def freqSweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
-	Plot one or more plots in one figure by calling sweep_single multiple times.
+	2017-06-22 11:37
+	Plot one or more plots of one single sweep.freqSweep in one figure.
 	Syntax:
 	-------
-	lines=sweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10)
+	lines=freqSweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10)
 	Parameters:
 	-----------
 	axis: single matplotlib.axes._subplots.AxesSubplot or list or numpy.ndarray, allowed inputs are one axis, or a list/matrix of axes.
@@ -597,13 +599,14 @@ def sweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_mark
 
 	return lines
 #=======================================================================
-def sweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def freqSweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
+	2017-06-22 11:37
 	Plot sweep data in a 'fx'+'fy'+'fr'+'xy' fashion.
 	This function does not create its own figure window.
 	Syntax:
 	-------
-	line=sweep_all(axes,swpdata,pltmode[,iter_color=0,iter_marker=0,iter_linestyle=0,fillstyle='full',markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	line=freqSweep_all(axes,swpdata,pltmode[,iter_color=0,iter_marker=0,iter_linestyle=0,fillstyle='full',markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 	Parameters:
 	-----------
 	axes: 2-by-2 axes matrix, dimensions beyond 0 and 1 will be ignored.
@@ -631,21 +634,17 @@ def sweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,i
 	mode2=gn+'fr'
 	mode3=gn+'xy'
 
-	lines=sweep_multiple(axes,swpdata,[mode0,mode1,mode2,mode3],fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
-	#line0=sweep_single(axes[0][0],swpdata,mode0,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
-	#line1=sweep_single(axes[0][1],swpdata,mode1,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
-	#line2=sweep_single(axes[1][0],swpdata,mode2,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
-	#line3=sweep_single(axes[1][1],swpdata,mode3,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
-	#return np.array(line0+line1+line2+line3)
+	lines=freqSweep_multiple(axes,swpdata,[mode0,mode1,mode2,mode3],fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 	return lines
 #=======================================================================
-def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+def freqSweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 	'''
+	2017-06-22 11:37
 	Plots multiple curves in the same figure. When reading the data, this function uses the default correctFunc in FreqSweep.FreqSweep class object.
 	Syntax:
 	-------
-	fig,axes,lines=sweeps_multiple(device,file#1,...,file#N,fold1,...,foldN,logname=log_file_path[,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
-	fig,axes,lines=axes,sweeps_multiple(device,file#1,...,file#N,'fold'[,...])
+	fig,axes,lines=freqSweeps_multiple(device,file#1,...,file#N,fold1,...,foldN[,logname=log_file_path,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	fig,axes,lines=freqSweeps_multiple(device,file#1,...,file#N,'fold'[,...])
 	Parameters
 	----------
 	device: str, device code string, e.g. 'h1m'.
@@ -664,7 +663,7 @@ def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normBy
 	-------
 	fig,axes,lines: handles, each element of the 'lines' tuple is a tuple of four 'line's from fx/fy/fr/xy plots.
 	'''
-	from sweep import singleSweep as sswp
+	from sweep import freqSweep as fswp
 
 	#pltmode=pltmode.lower() #make input case insensitive
 	if isinstance(args[-1],str): #construct filenums and folds lists
@@ -691,11 +690,11 @@ def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normBy
 
 	lines=[]
 	for filenum,fold in zip(filenums,folds):
-		swpdata=sswp(utl.mkFilename(device,filenum),fold={'x':fold,'y':fold,'r':fold},correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+		swpdata=fswp(utl.mkFilename(device,filenum),fold={'x':fold,'y':fold,'r':fold},correctFunc=correctFunc,logname=logname,normByParam=normByParam)
 		if 'all' in pltmode:
-			line=sweep_all(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			line=freqSweep_all(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		else:
-			line=sweep_multiple(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			line=freqSweep_multiple(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		lines.append(line)
 		iter_color+=1
 		iter_marker+=1
@@ -705,6 +704,7 @@ def sweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normBy
 #=======================================================================
 def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=(-np.inf,np.inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
+	2017-06-22 11:38
 	Check sim fitting result and plot. Assume funcs1&2 as X&Y-channels, and sqrt(x**2+y**2) as R-channel. 
 	Syntax:
 	-------
@@ -797,12 +797,50 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 #=======================================================================
 def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,logname=None,fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
+	2017-06-22 11:38
+	Check sim fitting result and plot using fitted parameters read from a file. Assume funcs1&2 as X&Y-channels, and sqrt(x**2+y**2) as R-channel. 
+
+	Syntax:
+	-------
+	fig,axes,lines=fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum[,logname=None,fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10]):
+
+	Parameters:
+	-----------
+	filename: str, filename of the file to be check.
+	filepopt: str, filename of the file containing the optimized parameters.
+	header: str list, header list corresponding to popt.
+	fitmode: str, fit mode used to obtain the popt.
+	funcs1&2: function lists of models for simultaneous fitting.	
+	sharenum: number of parameters shared by funcs1&2.
+	logname: str, path to the log file name.
+	fold: dict, divide a specified attribute by a given number, e.g. {'x':-1} will divide self.x by -1.
+	correctFunc: function, gain correcting function accounting for frequency rolloff of the lock in, etc.; used when 'g(n)x/y/r' are called.
+	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
+	frange: frequency range (low,high) bounds.
+	+++
+	figsize: figure size.
+	wspace/hspace: subfigure spacings.
+	markersize,linewidth: axes and fig settings.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+
+	Returns:
+	--------
+	fig: figure handle.
+	axes: all axis handles.
+	lines: all plotted lines handles.
+
+	Note:
+	------
+	When plot fitted curves, they are within frange. The terms containing the shared parameters are considered main terms, and the rest are backgrounds.
+
 	'''
 
-	from sweep import singleSweep as sswp
+	from sweep import freqSweep as fswp
 
 	popt=utl.fswpFitLoad(filename,filepopt,header) #fetch popt
-	data=sswp(filename,fold=fold,correctFunc=utl.gainCorrect,logname=logname,normByParam=normByParam)
+	data=fswp(filename,fold=fold,correctFunc=utl.gainCorrect,logname=logname,normByParam=normByParam)
 	if 'g' in fitmode:
 		y1=data.gx
 		y2=data.gy

@@ -1,4 +1,5 @@
 '''
+macro.py: Ver 1.0
 macro functions
 '''
 import numpy as np
@@ -15,8 +16,8 @@ import sweep
 import FreqSweep
 import nmr
 
-from sweep import singleSweep as sswp
-from FreqSweep import FreqSweep as fswp
+from sweep import freqSweep as fswp
+from FreqSweep import FreqSweep as freqswp
 from nmr import nmr
 
 #=======================================================================
@@ -60,7 +61,7 @@ def lrtzsimfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,ft
 	ind=0
 	print('Start-',end='') #progress indicator
 	for filename in piece['Filename']:
-		data=fswp(filename,ftimes=ftimes,xtimes=xtimes,ytimes=ytimes,rtimes=rtimes,correctFunc=correctFunc,logname=logname)
+		data=freqswp(filename,ftimes=ftimes,xtimes=xtimes,ytimes=ytimes,rtimes=rtimes,correctFunc=correctFunc,logname=logname)
 		if pMctCalib is not None: # update data.Tmct and its relevant
 			_=data.mctC2T(pMctCalib,branch=mctBranch,Pn=Pn)
 		
@@ -251,6 +252,7 @@ def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,me
 #=======================================================================
 def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,header_metadata=None,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None):
 	'''
+	2017-06-22 11:34
 	Fit FreqSweep type data with lrtz1simfit method consecutively. Parse fitting result of each fit to the next fit.
 	Syntax:
 	-------
@@ -291,7 +293,7 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 	ind=0
 	print('Start-',end='') #progress indicator
 	for filename in piece['Filename']:
-		data=sswp(filename,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+		data=fswp(filename,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
 		if pMctCalib is not None: # update data.Tmct and its relevant
 			_=data.mctC2T(pMctCalib,branch=mctBranch,Pn=Pn)
 		
