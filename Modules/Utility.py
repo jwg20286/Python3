@@ -161,7 +161,7 @@ def gainCorrect_20mVrms(f,rawdata):
 
 	Syntax:
 	-------
-	newdata=gainCorrect(f,rawdata)
+	newdata=gainCorrect_20mVrms(f,rawdata)
 	Parameters:
 	-----------
 	f: frequency in Hz, will be converted to numpy.ndarray of dtype=float.
@@ -184,7 +184,7 @@ def gainCorrect_50mVrms(f,rawdata):
 
 	Syntax:
 	-------
-	newdata=gainCorrect(f,rawdata)
+	newdata=gainCorrect_50mVrms(f,rawdata)
 	Parameters:
 	-----------
 	f: frequency in Hz, will be converted to numpy.ndarray of dtype=float.
