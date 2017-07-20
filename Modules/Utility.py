@@ -211,10 +211,10 @@ def gainVsF1(f):
 	gain=gainVsF1(f)
 	Parameters:
 	-----------
-	f: the modulaing frequency (w2/2pi) in Hz in 1-40kHz range,	f list/tuple/numpy.ndarray will be converted to numpy.ndarray of dtype=float
+	f: the modulating frequency (w2/2pi) in Hz in 1-40kHz range,	f list/tuple/numpy.ndarray will be converted to numpy.ndarray of dtype=float
 	Returns:
 	--------
-	gain: the ratio of input (Ri*cos(w1t)cos(w2t) to output (Ro*cos(w2t)).
+	gain: the ratio of output (Ro*cos(w2t)) to input (Ri*cos(w1t)cos(w2t).
 	gain=Ro(mVrms)*sqrt(2)*200/(2500*Ri(mVrms)).
 	'''
 	f=np.array(f,dtype=float)
