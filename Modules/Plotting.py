@@ -652,6 +652,7 @@ def freqSweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,no
 	fold: the fetched data will be divided by this number(s).
 	logname: str, sweeps log path.
 	correctFunc: frequency roll-off correcting function.
+	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
 	pltmode: plot mode, supports extra 'g/n'.
 	subplots_layout: 1x2 tuple, matplotlib.subplots row & column numbers.
 	figsize,wspace,hspace,iter,fillstyle,markeredgewidth,markersize,linewidth: fig and axes settings.
