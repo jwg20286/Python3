@@ -15,6 +15,7 @@ import nmr
 #=======================================================================
 def sweepSingle(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
+	DEPRECATED
 	Plot sweep data based on input plot mode on given axis.
 	This function does not create its own figure window.
 	Syntax:
@@ -65,6 +66,7 @@ def sweepSingle(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5
 #=======================================================================
 def sweepAll(axes,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
+	DEPRECATED
 	Plot sweep data in a 'fx'+'fy'+'fr'+'xy' fashion.
 	This function does not create its own figure window.
 	Syntax:
@@ -103,6 +105,7 @@ def sweepAll(axes,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,ma
 #=======================================================================
 def sweepsAll(device,*args,logname=None,correctFunc=utl.gainCorrect,pltmode='all',figsize=(15,9),wspace=0.7,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 	'''
+	DEPRECATED
 	Plots multiple curves in the same figure. When reading the data, this function uses the default correctFunc in FreqSweep.FreqSweep class object.
 	Syntax:
 	-------
