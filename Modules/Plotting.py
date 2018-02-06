@@ -640,14 +640,82 @@ def freqSweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker
 	lines=freqSweep_multiple(axes,swpdata,[mode0,mode1,mode2,mode3],fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 	return lines
 #=======================================================================
-def freqSweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+#def freqSweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+def freqSweeps_multiple(*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+
 	'''
-	2017-06-22 11:37
-	Plots multiple curves in the same figure. When reading the data, this function uses the default correctFunc in FreqSweep.FreqSweep class object.
+	2018-02-06 11:51
+	Plots multiple curves in the same figure. When reading the data, this function uses the default correctFunc in sweep.freqSweep class object.
+	Syntax:
+	-------
+	fig,axes,lines=freqSweeps_multiple(filename#1,filename#2,...,filename#N,fold1,...,foldN[,logname=log_file_path,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	fig,axes,lines=freqSweeps_multiple(filename#1,...,filename#N,'fold'[,...])
+	Parameters
+	----------
+	filename#N: tuple of str, file path(s).
+	fold: the fetched data will be divided by this number(s).
+	logname: str, sweeps log path.
+	correctFunc: frequency roll-off correcting function.
+	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
+	pltmode: plot mode, supports extra 'g/n'.
+	subplots_layout: 1x2 tuple, matplotlib.subplots row & column numbers.
+	figsize,wspace,hspace,iter,fillstyle,markeredgewidth,markersize,linewidth: fig and axes settings.
+	legflag: boolean, show legend if True.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns
+	-------
+	fig,axes,lines: handles, each element of the 'lines' tuple is a tuple of four 'line's from fx/fy/fr/xy plots.
+	'''
+	from sweep import freqSweep as fswp
+
+	if isinstance(args[-1],str): #construct filenums and folds lists
+		#filenums=args[:-1]
+		filenames=args[:-1]
+		folds=[float(args[-1])]*len(args) #repeat single element
+	elif len(args)%2==0:
+		#filenums=args[:int(len(args)/2)]
+		filenames=args[:int(len(args)/2)]
+		folds=args[int(len(args)/2):]
+	else:
+		raise TypeError('Numbers of filenums and folds do not match')
+	
+	if subplots_layout is not None:
+		fig,axes=plt.subplots(subplots_layout[0],subplots_layout[1],figsize=figsize)
+	elif 'all' not in pltmode:
+		if not isinstance(pltmode,list or tuple):
+			pltmode=[pltmode]
+		fig,axes=plt.subplots(1,len(pltmode),figsize=figsize)
+	else:
+		fig,axes=plt.subplots(2,2,figsize=figsize)
+
+	fig.subplots_adjust(wspace=wspace,hspace=hspace)
+
+	lines=[]
+	#for filenum,fold in zip(filenums,folds):
+	for filename,fold in zip(filenames,folds):
+		#swpdata=fswp(utl.mkFilename(device,filenum),fold={'x':fold,'y':fold,'r':fold},correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+		swpdata=fswp(filename,fold={'x':fold,'y':fold,'r':fold},correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+		if 'all' in pltmode:
+			line=freqSweep_all(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		else:
+			line=freqSweep_multiple(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		lines.append(line)
+		iter_color+=1
+		iter_marker+=1
+		iter_linestyle+=1
+	
+	return fig,axes,lines
+#=======================================================================
+def freqSweeps_multiple_1device(device,*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+	'''
+	2018-02-06 12:40
+	Plots multiple curves in the same figure. These curves are named by the same device label. When reading the data, this function uses the default correctFunc in sweep.freqSweep class object.
 	Syntax:
 	-------
 	fig,axes,lines=freqSweeps_multiple(device,file#1,...,file#N,fold1,...,foldN[,logname=log_file_path,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
-	fig,axes,lines=freqSweeps_multiple(device,file#1,...,file#N,'fold'[,...])
+	fig,axes,lines=freqSweeps_multiple(filename#1,...,filename#N,'fold'[,...])
 	Parameters
 	----------
 	device: str, device code string, e.g. 'h1m'.
@@ -668,42 +736,19 @@ def freqSweeps_multiple(device,*args,logname=None,correctFunc=utl.gainCorrect,no
 	fig,axes,lines: handles, each element of the 'lines' tuple is a tuple of four 'line's from fx/fy/fr/xy plots.
 	'''
 	from sweep import freqSweep as fswp
-
-	#pltmode=pltmode.lower() #make input case insensitive
-	if isinstance(args[-1],str): #construct filenums and folds lists
+	#construct filenums and folds lists
+	if isinstance(args[-1],str): #folds is string
 		filenums=args[:-1]
-		folds=[float(args[-1])]*len(args) #repeat single element
-	elif len(args)%2==0:
+		folds=(args[-1],) #make it a tuple
+	elif len(args)%2==0: #folds are numbers
 		filenums=args[:int(len(args)/2)]
 		folds=args[int(len(args)/2):]
 	else:
 		raise TypeError('Numbers of filenums and folds do not match')
-	
-	#fig,axes=plt.subplots(2,2,figsize=figsize)
-	#fig.subplots_adjust(wspace=wspace,hspace=hspace)
-	if subplots_layout is not None:
-		fig,axes=plt.subplots(subplots_layout[0],subplots_layout[1],figsize=figsize)
-	elif 'all' not in pltmode:
-		if not isinstance(pltmode,list or tuple):
-			pltmode=[pltmode]
-		fig,axes=plt.subplots(1,len(pltmode),figsize=figsize)
-	else:
-		fig,axes=plt.subplots(2,2,figsize=figsize)
 
-	fig.subplots_adjust(wspace=wspace,hspace=hspace)
-
-	lines=[]
-	for filenum,fold in zip(filenums,folds):
-		swpdata=fswp(utl.mkFilename(device,filenum),fold={'x':fold,'y':fold,'r':fold},correctFunc=correctFunc,logname=logname,normByParam=normByParam)
-		if 'all' in pltmode:
-			line=freqSweep_all(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
-		else:
-			line=freqSweep_multiple(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
-		lines.append(line)
-		iter_color+=1
-		iter_marker+=1
-		iter_linestyle+=1
-	
+	filenames=tuple(map(lambda filenum: utl.mkFilename(device,filenum), filenums))
+	newArgs=filenames+folds #tuple of filenames and folds
+	fig,axes,lines=freqSweeps_multiple(*newArgs,logname=logname,correctFunc=correctFunc,normByParam=normByParam,pltmode=pltmode,subplots_layout=subplots_layout,figsize=figsize,wspace=wspace,hspace=hspace,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 	return fig,axes,lines
 #=======================================================================
 def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=(-np.inf,np.inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
