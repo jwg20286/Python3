@@ -733,4 +733,36 @@ def remove_header(path):
 	os.utime(path,times=(epocha,epochm)) # restore access and modify time
 	return None
 #=======================================================================
+def tcxR2T(R):
+	'''
+	CX-1080-CU-HT-20L thermometer's resistance to temperature conversion.
+	Syntax:
+	-------
+	T=tcxR2T(R)
+	Parameters:
+	-----------
+	R: a number, the resistance value of the thermometer in Ohm.
+	Returns:
+	--------
+	T: a number, the measured temperature in Kelvin.
+	'''
+	ZL=2.19190615742
+	ZU=3.06365212051
+	a0=185.729684
+	a1=-119.272440
+	a2=21.243200
+	a3=-3.132976
+	a4=0.523229
+	a5=-0.092608
+	a6=0.015490
+	a7=-0.003148
+	A=[a0,a1,a2,a3,a4,a5,a6,a7]
+
+	Z=np.log10(R)
+	k=((Z-ZL)-(ZU-Z))/(ZU-ZL)
+	T=0
+	for i in range(0,8):
+		T+=A[i]*np.cos(i*np.arccos(k))
+	return T
+#=======================================================================
 
