@@ -765,4 +765,25 @@ def tcxR2T(R):
 		T+=A[i]*np.cos(i*np.arccos(k))
 	return T
 #=======================================================================
+def setra206V2P(V):
+	'''
+	Setra 206 pressure gauge voltage to pressure conversion. The supply is 24VDC. The manufacturer calibration data is used:
+	P=[0.7375,40.7079,93.3524,144.7748,195.4766,247.7697,299.2034,350.5528,401.6060,453.5418,505.1436] (psig)
+	V=[0.25,0.6379,1.1479,1.6467,2.1389,2.6459,3.1450,3.6438,4.1396,4.6457,5.1497] (VDC)	
+	The formula used here is obtained from a linear regression of the calibration data.
+	Syntax:
+	-------
+	P=setra206V2P(V)
+	Parameters:
+	-----------
+	V: a number, DC voltage output of the setra206 gauge.
+	Returns:
+	--------
+	P: float, pressure measured by the gauge.
+	'''
+	slope=102.98806383700568
+	intercept=-24.860760933856199
+	P=slope*V+intercept
+	return P
+#=======================================================================
 
