@@ -786,4 +786,21 @@ def setra206V2P(V):
 	P=slope*V+intercept
 	return P
 #=======================================================================
-
+def setra206P2V(P):
+	'''
+	Setra 206 pressure gauge pressure to voltage conversion. The supply is 24VDC. This is the exact reverse of setra206V2P using the same manufacturer calibration data.
+	Syntax:
+	-------
+	V=setra206P2V(P)
+	Parameters:
+	-----------
+	P: a number, pressure measured by the gauge.
+	Returns:
+	--------
+	V: float, DC voltage output of the setra206 gauge.
+	'''
+	slope=102.98806383700568
+	intercept=-24.860760933856199
+	V=(P-intercept)/slope
+	return V
+#=======================================================================
