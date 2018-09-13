@@ -8,6 +8,7 @@ import pandas as pd
 import FuncLib
 from pint import UnitRegistry
 ureg=UnitRegistry()
+import scipy.special
 
 #=======================================================================
 def mctC2P(C,p):
@@ -803,4 +804,42 @@ def setra206P2V(P):
 	intercept=-24.860760933856199
 	V=(P-intercept)/slope
 	return V
+#=======================================================================
+def jnp_zeros(m,n):
+	'''
+	Compute zeros of integer-order Bessel function derivative Jn’(x)
+	This program defines a '0th' extremum for the Bessel function. Utility.jnp_zeros(0,0) will return 0.
+	Syntax:
+	-------
+	jnp0=jnp_zeros(m,n)
+	Parameters:
+	-----------
+	m: interger, integer-order of the Bessel function.
+	n: interger, n stands for the 'nth' extremum for the Bessel function.
+	Returns:
+	--------
+	jnp0: float, the nth extremum for the Bessel function.
+	'''
+	if m==0 and n==0:
+		return 0
+	else:
+		return scipy.special.jnp_zeros(m,n)[-1]
+#=======================================================================
+def cylCav_f0(L,R,c,l,m,n):
+	'''
+	Calculate the acoustic wave eigen frequencies inside a cylindrical cavity. The amplitude of the oscillating pressure inside the cavity at location (r,theta, z) is P_{lmn}=A_{lmn}J_m(k_{mn}r)\cos(m\ theta+\gamma_{lmn})\cos(k_{zl}z). Check my notes for more information. The same notation is used.
+	Syntax:
+	-------
+	flmn=cylCav_f0(L,R,c,l,m,n)
+	Parameters:
+	-----------
+	L: float, length of the cavity.
+	R: float, radius of the cavity.
+	c: float, speed of sound of the medium filling the cavity.
+	l,m,n: integers, integer-order numbers for the wave. Check my notes
+	'''
+	kzl=l*np.pi/L
+	kmn=jnp_zeros(m,n)/R
+	flmn=1/2/np.pi*c*np.sqrt(kmn**2+kzl**2)
+	return flmn
 #=======================================================================
