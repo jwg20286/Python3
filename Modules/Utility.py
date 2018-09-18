@@ -40,7 +40,7 @@ def mctP2T(P,branch='low',Pn=34.3934):
 	Parameters:
 	-----------
 	P: pressure in bar.
-	branch: the melting curve branchin in which the solution is searched for. 'low' is below 315.23959351mK, which is the lowest pressure point on the melting curve, 'high' is above this point.
+	branch: the melting curve branch in which the solution is searched for. 'low' is below 315.23959351mK, which is the lowest pressure point on the melting curve, 'high' is above this point.
 	Pn: Neel transition pressure in bar.
 	Returns:
 	--------
