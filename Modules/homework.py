@@ -128,8 +128,8 @@ fig.colorbar(c1, ax=ax[1])
 #=====================================================
 
 #=====================================================
-#Homework1
-#ELECTRIC POTENTIAL
+#Homework4
+#INTEGRATION: HOW BIG ARE OBJECTS IN THE UNIVERSE?
 import numpy as np
 from numpy import ones,copy,cos,tan,pi,linspace
 import warnings
