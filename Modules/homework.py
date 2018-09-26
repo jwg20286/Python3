@@ -286,3 +286,40 @@ ax[1][1].grid()
 plt.show()
 #=======================================================
 
+#=======================================================
+# Homework5
+import numpy as np
+import random
+#=======================================================
+# Monte carlo on birthday paradox
+#=======================================================
+# 1. Birthday paradox
+result=dict() # store data in a dictionary
+for N in range(40): # N is number of peoples, hear I've chosen it to be 0-39
+    runN=10000 # number of samples to be averaged in each scenario
+    matchCount=0
+
+    for i in range(runN):
+        birthdays=[]
+        for i in range(N):
+            birthdays.append(random.randint(1,365))
+        if len(set(birthdays))!=N: #check if birthdays repeat
+            matchCount+=1
+    matchRate=matchCount/runN
+    result.update({N:matchRate})
+    resultSelect=dict((k,v) for k,v in result.items() if v>=0.5) # remove keys whose values are <0.5
+minN=min(resultSelect,key=resultSelect.get) # find the key with the minimum value of all the values >=0.5
+print(minN)
+#===========================================================
+# 2. calculate pi
+#1/4 of a circle of radius 1 in 1x1 square, the square spans from (0,0) to (1,1) with side length 1.
+N=10000000
+insideCount=0 #how many points are inside the circle
+for i in range(N):
+    x=random.random()
+    y=random.random()
+    if x**2+y**2<=1: # same as np.sqrt(x**2+y**2)<=1
+        insideCount+=1
+Pi=insideCount/N*4
+print(Pi)
+#============================================================
