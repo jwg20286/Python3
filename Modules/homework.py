@@ -323,3 +323,42 @@ for i in range(N):
 Pi=insideCount/N*4
 print(Pi)
 #============================================================
+
+#============================================================
+# Homework6
+#============================================================
+import numpy as np
+#============================================================
+def step(x,y,l): #discrete hexagonal style scattering
+    theta=np.random.randint(0,6)*np.pi/3
+    dx=l*np.cos(theta)
+    dy=l*np.sin(theta)
+    return x+dx,y+dy
+
+def r(x,y):
+    return np.sqrt(x**2+y**2)
+#=============================================================
+R=0.7 #change R's
+l=4e-3 #mean free path
+maxstep=1e9 #test stops at maxstep
+testNum=1000 #number of trials
+st=0
+
+for i in range(testNum):
+    x,y=0,0
+    t=0
+    while (r(x,y)<R)and(t<maxstep):
+        x,y=step(x,y,l)
+        t+=1
+    st+=t
+avet=t/testNum #average t needed to walk out of the sun
+
+#print results
+print('for R=%f, final_x=%f, final_y=%f, average_t=%f, with %i trials'%(R,x,y,avet,testNum))
+#=============================================================
+# The results I got are:
+# R=0.7: average t=19.954 with 1000 trials
+# R=7: average t=28781 with 100 trials.
+# R=70: t=370939279 with 1 trial.
+#=============================================================
+
