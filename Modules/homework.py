@@ -328,37 +328,146 @@ print(Pi)
 # Homework6
 #============================================================
 import numpy as np
+import random
 #============================================================
-def step(x,y,l): #discrete hexagonal style scattering
-    theta=np.random.randint(0,6)*np.pi/3
-    dx=l*np.cos(theta)
-    dy=l*np.sin(theta)
-    return x+dx,y+dy
+# constants
+fmp = 4*10**-3
+c = 3.00*10**8
 
-def r(x,y):
-    return np.sqrt(x**2+y**2)
-#=============================================================
-R=0.7 #change R's
-l=4e-3 #mean free path
-maxstep=1e9 #test stops at maxstep
-testNum=1000 #number of trials
-st=0
+# measuring distance from the origin.
+def distance(sr):
+    """This function calculates the distance from the origin."""
+    r = 0
+    x = 0
+    y = 0
+    iterations = 0
+    while r < sr:
+        theta = np.random.uniform(0,2*np.pi)
+        x += fmp*np.cos(theta)
+        y += fmp*np.sin(theta)
+        r = np.sqrt(x**2 + y**2)
+        iterations += 1
+    return (iterations*fmp)/c
+#------------------------------------------------------------
+#define radius, and number of trials to be averaged
+sr=7
+testN=20
 
-for i in range(testNum):
-    x,y=0,0
-    t=0
-    while (r(x,y)<R)and(t<maxstep):
-        x,y=step(x,y,l)
-        t+=1
-    st+=t
-avet=t/testNum #average t needed to walk out of the sun
-
-#print results
-print('for R=%f, final_x=%f, final_y=%f, average_t=%f, with %i trials'%(R,x,y,avet,testNum))
-#=============================================================
+totalTime=0
+for i in range(testN):
+    totalTime+=distance(sr)
+aveTime=totalTime/testN # total amount to time to escape the sun
+print('t=%.3e'%aveTime,' for sr=%f'%sr)
+#------------------------------------------------------------
 # The results I got are:
-# R=0.7: average t=19.954 with 1000 trials
-# R=7: average t=28781 with 100 trials.
-# R=70: t=370939279 with 1 trial.
+# R=0.7: average t=4.095e-07 
+# R=1.4: average t=1.772e-06
+# R=2.1: average t=3.675e-06
+# R=3: average t=8.189e-06
+# R=7: average t=3.883e-05
+#------------------------------------------------------------
+#data:
+sr=np.array([0.7, 1.4, 2.1, 3, 7])
+t=np.array([4.095e-07,1.772e-06,3.675e-06,8.189e-06, 3.883e-05])
+# linear fit t vs sr^2
+p=np.polyfit(sr**2,t,1)
+slope=p[0]
+intercept=p[1]
+t_sun=p[0]*(7e8)**2+p[1]
+t_sun_year=t_sun/(3600*24*365)
+print('requires in total %f years'%t_sun_year) #total amount of years required to travel from core to surface
+
+#plot data vs fit
+fig=plt.figure()
+ax=fig.add_subplot(111)
+ax.plot(sr**2,t,'.')
+ax.plot(np.array([0,49]),np.array([intercept,slope*49+intercept]))
+ax.set_xlabel('$r^2 (m^2)$')
+ax.set_ylabel('Time (s)')
+ax.grid()
+plt.show()
 #=============================================================
+
+#=============================================================
+#MIDTERM PROJECT
+#DECODE
+#=============================================================
+# counts probability of letter c1 following letter c2, stored in p['c1']['c2']
+# sum of 'c2' over p['c1']['c2'] will give 1, in other words, all values in p['c1'] add to 1.
+#=====================================
+#clean Text to remove special characters, lower all uppercase letters, replace all whitespaces with underscores
+def cleanText(sampleText, trashText='''0123456789`~!@#$%^&*()-_=+[{]};:'",<.>/?'''): #trashText is optional, default is given
+    sampleText=''.join([i for i in sampleText if i not in trashText]) #remove all characters belong to the trashText
+    sampleText=sampleText.lower() #make all lowercase
+    sampleText=sampleText.replace(' ','_') #replace whitespace with underscore
+    return sampleText
+#=====================================
+# create alphabet ordered dictionary with all values 0
+def dictAlphabet():
+    alphabet='_'+string.ascii_lowercase
+    dictAZ=od()
+    for letter in alphabet:
+        dictAZ[letter]=0
+    return dictAZ
+#=====================================
+# create 2-layer alphabet dictionary with each value a 1-layer dictAlphabet style dictionary.
+def dictAlphabet_2layer():
+    alphabet='_'+string.ascii_lowercase
+    p=od()
+    for letter in alphabet:
+        p[letter]=dictAlphabet()
+    return p
+#=====================================
+#function to normalize a 1-layer dictionary
+def dict_norm(dictionary):
+    norm=np.array(list(dictionary.values())).sum() #normalization factor
+    if norm==0:#if norm is 0
+        norm=1 #make norm a non-zero value to avoid divide by 0 problem.
+    for key in dictionary.keys():
+        dictionary[key]/=norm
+    return dictionary
+#=======================================
+# count how many times a letter l2 follow a letter l1, store in a 2-layer dictionary (1st index is l1, 2nd is l2)
+# then normalize the counts to give probabilities
+def followProb(sampleText,trashText='''0123456789`~!@#$%^&*()-_=+[{]};:'",<.>/?'''):
+    sampleText=cleanText(sampleText,trashText=trashText)
+    # create storage room as a 2 layer dictionary
+    p=dictAlphabet_2layer()
+    #------------------------------------------------
+    # count instanced of l2 following l1
+    for i in range(len(sampleText)-1):
+        l1=sampleText[i] # 1st letter
+        l2=sampleText[i+1] # 2nd letter
+        p[l1][l2]+=1
+    #normalize the dictionary for each l1
+    for key in p.keys():
+        p[key]=dict_norm(p[key])
+    return p
+#==========================================
+#plot result
+def probPlot(p):
+    alphabet='_'+string.ascii_lowercase
+    data=np.zeros([27,27,])
+    for index in range(27):
+        letter=alphabet[index]
+        data[index]=np.array(list(p[letter].values())) #prepare 2d array for pcolor
+
+    x=np.array([i for i in range(28)])
+    y=np.array([i for i in range(28)])
+
+    fig,ax=plt.subplots(1,1)
+    c=ax.pcolor(x,y,data,cmap='BuGn',vmin=0,vmax=1)
+    ax.set_title('conditional probability')
+    ax.axis([0,27,0,27])
+
+    ax.set_xlabel('second character')
+    ax.set_ylabel('first character')
+    ax.set_xticks(x+0.5)
+    ax.set_yticks(y+0.5)
+    ax.set_xticklabels(alphabet)
+    ax.set_yticklabels(alphabet)
+
+    fig.colorbar(c,ax=ax)
+    plt.show()
+#====================================================
 
