@@ -33,5 +33,5 @@ Utility use functions. Designed to NOT have dependency on any home-made modules.
 Model function library.
 
 ### Other:
-**homework.py**:
+**homework.py**:  
 Computational physics homework and projects.
