@@ -31,3 +31,7 @@ Utility use functions. Designed to NOT have dependency on any home-made modules.
 
 **FuncLib.py**:  
 Model function library.
+
+### Other:
+**homework.py**:
+Computational physics homework and projects.
