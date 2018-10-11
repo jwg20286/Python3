@@ -395,11 +395,15 @@ plt.show()
 # counts probability of letter c1 following letter c2, stored in p['c1']['c2']
 # sum of 'c2' over p['c1']['c2'] will give 1, in other words, all values in p['c1'] add to 1.
 #=====================================
+# counts probability of letter c1 following letter c2, stored in p['c1']['c2']
+# sum of 'c2' over p['c1']['c2'] will give 1, in other words, all values in p['c1'] add to 1.
+#=====================================
 #clean Text to remove special characters, lower all uppercase letters, replace all whitespaces with underscores
-def cleanText(sampleText, trashText='''0123456789`~!@#$%^&*()-_=+[{]};:'",<.>/?'''): #trashText is optional, default is given
-    sampleText=''.join([i for i in sampleText if i not in trashText]) #remove all characters belong to the trashText
+def cleanText(sampleText):
+    sampleText=''.join([i for i in sampleText if (i.isspace() or i in string.ascii_letters)]) #only keep whitespace and letters
     sampleText=sampleText.lower() #make all lowercase
-    sampleText=sampleText.replace(' ','_') #replace whitespace with underscore
+    sampleText=sampleText.replace('\n',' ').replace('\r',' ') #replace line breakers with whitespace
+    sampleText='_'.join(sampleText.split())
     return sampleText
 #=====================================
 # create alphabet ordered dictionary with all values 0
@@ -429,8 +433,8 @@ def dict_norm(dictionary):
 #=======================================
 # count how many times a letter l2 follow a letter l1, store in a 2-layer dictionary (1st index is l1, 2nd is l2)
 # then normalize the counts to give probabilities
-def followProb(sampleText,trashText='''0123456789`~!@#$%^&*()-_=+[{]};:'",<.>/?'''):
-    sampleText=cleanText(sampleText,trashText=trashText)
+def followProb(sampleText):
+    sampleText=cleanText(sampleText)
     # create storage room as a 2 layer dictionary
     p=dictAlphabet_2layer()
     #------------------------------------------------
@@ -470,4 +474,3 @@ def probPlot(p):
     fig.colorbar(c,ax=ax)
     plt.show()
 #====================================================
-
