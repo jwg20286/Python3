@@ -395,16 +395,16 @@ plt.show()
 # counts probability of letter c1 following letter c2, stored in p['c1']['c2']
 # sum of 'c2' over p['c1']['c2'] will give 1, in other words, all values in p['c1'] add to 1.
 #=====================================
-# counts probability of letter c1 following letter c2, stored in p['c1']['c2']
-# sum of 'c2' over p['c1']['c2'] will give 1, in other words, all values in p['c1'] add to 1.
-#=====================================
 #clean Text to remove special characters, lower all uppercase letters, replace all whitespaces with underscores
-def cleanText(sampleText):
+def cleanText(sampleText,keepspace=True):
     sampleText=''.join([i for i in sampleText if (i.isspace() or i in string.ascii_letters)]) #only keep whitespace and letters
     sampleText=sampleText.lower() #make all lowercase
     sampleText=sampleText.replace('\n',' ').replace('\r',' ') #replace line breakers with whitespace
     sampleText='_'.join(sampleText.split())
-    return sampleText
+    if keepspace:
+        return sampleText
+    else:
+        return sampleText.replace('_','')
 #=====================================
 # create alphabet ordered dictionary with all values 0
 def dictAlphabet():
@@ -433,8 +433,8 @@ def dict_norm(dictionary):
 #=======================================
 # count how many times a letter l2 follow a letter l1, store in a 2-layer dictionary (1st index is l1, 2nd is l2)
 # then normalize the counts to give probabilities
-def followProb(sampleText):
-    sampleText=cleanText(sampleText)
+def followProb(sampleText,keepspace=True):
+    sampleText=cleanText(sampleText,keepspace=keepspace)
     # create storage room as a 2 layer dictionary
     p=dictAlphabet_2layer()
     #------------------------------------------------
@@ -472,5 +472,347 @@ def probPlot(p):
     ax.set_yticklabels(alphabet)
 
     fig.colorbar(c,ax=ax)
-    plt.show()
+    #plt.show()
+    return fig,ax
 #====================================================
+# energy of two characters, l1 followed by l2
+def estr(l1,l2,p):
+    if p[l1][l2]==0:
+        return np.inf
+    else:
+        return -np.log(p[l1][l2]) #energy will be infinite if p[l1][l2]=0
+#===============================
+# energy of a string
+def estr_long(string,p):
+    prob=1
+    for i in range(0,len(string)-1):
+        l1=string[i]
+        l2=string[i+1]
+        prob*=p[l1][l2]
+    if prob==0:
+        return np.inf
+    else:
+        return -np.log(prob)
+#=================================
+# probability of a string happening
+def pstr_long(string,p):
+    prob=1
+    for i in range(0,len(string)-1):
+        l1=string[i]
+        l2=string[i+1]
+        prob*=p[l1][l2]
+    return prob
+#=================================
+#accept something with a probability
+def rolldice(prob):
+    dice=random.random()
+    if dice<prob:
+        return True #accept
+    else:
+        return False #reject
+#====================================
+#probability of transfer from old to new state with different probability of happening
+def tRate(pold,pnew,T):
+    if pold>pnew:
+        return (pnew/pold)**(1/T)
+    else:
+        return 1
+#====================================
+#probability of transfer from old to new state with different energy
+def tRateE(eold,enew,T):
+    pold=np.exp(-eold)
+    pnew=np.exp(-enew)
+    return tRate(pold,pnew,T)
+#====================================
+def generate_key(list_of_letters):
+    # dictionary mapping random letter to true letter
+    x=list_of_letters
+    random.shuffle(x) # now the orders are different
+    if '_' in x:
+        key=dict(zip(x,'_'+string.ascii_lowercase))
+        reverse_key=dict(zip('_'+string.ascii_lowercase, x))
+    else:
+        key=dict(zip(x,string.ascii_lowercase))
+        reverse_key=dict(zip(string.ascii_lowercase, x))
+    return key, reverse_key
+#====================================
+#generate key for our project
+def autokey(keepspace=True):
+    if keepspace:
+        alphabet='_'+string.ascii_lowercase #assume using underscore and lowercase letters
+    else:
+        alphabet=string.ascii_lowercase #assume lowercase letters only
+    lol=[l for l in alphabet]
+    key,reverse_key=generate_key(lol)
+    return key,reverse_key
+#====================================
+def generate_random_from_phrase(phrase, reverse_key): #use (phrase,reverse_key) to encrypt, and (jumbled_phrase,key) to decrypt
+    jumbled_phrase = ''
+    for i in range(len(phrase)):
+        jumbled_phrase += reverse_key[phrase[i]]
+    return jumbled_phrase
+#=====================================
+def repAlphabet(phrase,keepspace=True):
+    counters=od(collections.Counter(phrase).most_common())
+    if keepspace:
+        alphabet='_'+string.ascii_lowercase
+    else:
+        alphabet=string.ascii_lowercase
+    newAlphabet=''
+    for l in alphabet:
+        if l in counters:
+            newAlphabet+=l*counters[l]
+        else:
+            newAlphabet+=l
+    return newAlphabet
+#=====================================
+def compare(phrase1,phrase2):
+    count=0
+    for x, y in zip(phrase1,phrase2):
+        if x==y:
+            count+=1
+    return count
+#=============================================
+def similarity(phrase1,phrase2):
+    return compare(phrase1,phrase2)/len(phrase1)
+#================================================
+# randomly swap values of two keys in a given key-dictionary
+def swap(key,alphabet='_'+string.ascii_lowercase):
+    newkey={k:key[k] for k in key.keys()} #allocate memory for newkey
+    length=len(alphabet)
+    i1=random.randint(0,length-1)
+    i2=random.randint(0,length-1)
+    while alphabet[i2]==alphabet[i1]:
+        i2=random.randint(0,length-1) #make sure l2!=l1
+    l1=alphabet[i1]
+    l2=alphabet[i2]
+    newkey[l1],newkey[l2]=newkey[l2],newkey[l1]
+    return newkey
+#======================================
+# update key if new key gives lower string energy
+def updatekey(jumbledphrase,p,T,key,alphabet=string.ascii_lowercase):
+    phrase_old=generate_random_from_phrase(jumbledphrase,key)
+    newkey=swap(key,alphabet=alphabet)
+    phrase_new=generate_random_from_phrase(jumbledphrase,newkey)
+    #eold=estr_long(phrase_old,p)
+    #enew=estr_long(phrase_new,p)
+    #updateProb=tRateE(eold,enew,T)
+    pold=pstr_long(phrase_old,p)
+    pnew=pstr_long(phrase_new,p)
+    updateProb=tRate(pold,pnew,T)
+    #print(updateProb)
+    if rolldice(updateProb):
+        return newkey
+    else:
+        return key
+#=========================================
+
+#=========================================
+#prepare hitchhiker text
+f=open('/home/jwg20286/Downloads/hitchhiker.txt','r')
+rawtext = f.read()
+# calculate conditional probability
+# keepspace
+phht=followProb(rawtext,keepspace=True)
+figt,axt=probPlot(phht)
+axt.set_title(''' Hitchhiker's guide to the galaxy (with space)''')
+
+phhf=followProb(rawtext,keepspace=False)
+figf,axf=probPlot(phhf)
+axf.set_title(''' Hitchhiker's guide to the galaxy (no space)''')
+
+plt.show()
+#=========================================
+#prepare war and peace text
+f=open('/home/jwg20286/Downloads/wp.txt','r')
+rawtext = f.read()
+# calculate conditional probability
+# keepspace
+pwpt=followProb(rawtext,keepspace=True)
+figt,axt=probPlot(pwpt)
+axt.set_title('War and peace (with space)')
+# discard space
+pwpf=followProb(rawtext,keepspace=False)
+figf,axf=probPlot(pwpf)
+axf.set_title('War and peace (no space)')
+plt.show()
+#============================================
+#generate key and rkey to encrypt 'the_answer_to_life_the_universe_and_everything_is_forty_two'
+key,rkey=autokey(keepspace=True)
+p=pwpt
+
+phrase='the_answer_to_life_the_universe_and_everything_is_forty_two'
+jumbledphrase=generate_random_from_phrase(phrase,rkey)
+op=generate_random_from_phrase(jumbledphrase,key) #original phrase, op==phrase
+print(op)
+print(jumbledphrase)
+print(key)
+# the key I generated was {'v': 'l', 'j': 's', 'w': 'r', 'r': 'c', 'b': 'p', 'o': 'n', 'a': 'u', 'k': 'm', 'm': 'b', 'e': 'w', 'u': 'k', 's': 'v', 'c': 'j', 'q': 'i', 'd': 'o', 't': 'y', 'g': 'e', 'i': 'g', 'p': 'd', 'l': 'h', '_': 't', 'y': 'z', 'f': 'a', 'n': 'q', 'h': 'x', 'x': 'f', 'z': '_'}.
+#=============================================
+#setting parameters for decryption
+keepspace=True
+# 1st process: weighted disturbance Markov chain
+Tmax1=100
+Tmin1=1
+N1=10000000
+Tstep1=(Tmax1-Tmin1)/N
+tolerance1=0.95
+# 2nd process: equal representation Markov chain
+Tmax2=0.1
+Tmin2=0.001
+N2=0
+Tstep2=(Tmax2-Tmin2)/N
+tolerance2=0.95
+#------------------------------------------------
+#phrase='theanswertolifetheuniverseandeverythingisfortytwo'
+#jumbledphrase='dhauxctaldikpwadhafxpgalcauxvagaledhpxrpcwildedti' #this corresponds to 'theanswertolifetheuniverseandeverythingisfortytwo'
+
+phrase='the_answer_to_life_the_universe_and_everything_is_forty_two'
+jumbledphrase='jodvsntid_vjrvxphdvjodvwnped_tdvsnzvded_yjopnqvptvhr_jyvjir' #the_answer_to_life_the_universe_and_everything_is_forty_two
+#-------------------------------------------
+if keepspace: # keep space
+    p=pwpt
+else: # no space
+    p=pwpf
+    
+key,rkey=autokey(keepspace=keepspace) #no space
+print('The original key is: ',key)
+
+newAlphabet=repAlphabet(jumbledphrase,keepspace=keepspace) # generate repeated alphabet, more frequent letters in jumbledphrase are represented by more copies
+print('The weighted alphabet is: ',newAlphabet)
+
+n=0
+while n<N1 and similarity(phrase,generate_random_from_phrase(jumbledphrase,key))<tolerance1:
+    n+=1
+    T=Tmax1**(1-n/N1)*Tmin1**(n/N1)
+    key=updatekey(jumbledphrase,p,T,key,alphabet=newAlphabet) #non equal representation
+print('The first process took %i steps.'%n)
+
+n=0
+while n<N2 and similarity(phrase,generate_random_from_phrase(jumbledphrase,key))<tolerance2:
+    n+=1
+    T=Tmax2**(1-n/N2)*Tmin2**(n/N2)
+    key=updatekey(jumbledphrase,p,T,key) #equal representation
+print('The second process took %i steps.'%n)
+print('The deciphered key is: ',key)
+#------------------------------------------
+newphrase=generate_random_from_phrase(jumbledphrase,key)
+print('\nThe original phrase is: ',phrase)
+print('The jumbled phrase is: ',jumbledphrase)
+print('The deciphered phrase is: ',newphrase)
+print('The similarity between the two is: ', similarity(phrase,newphrase))
+#=============================================
+# notes on what I have done, and the results
+#---------------------------------------------
+# test 1, war and peace
+'''
+keepspace=True
+
+Tmax1=100
+Tmin1=1
+N1=10000000
+Tstep1=(Tmax1-Tmin1)/N
+tolerance1=0.9
+
+Tmax2=0.1
+Tmin2=0.001
+N2=100000
+Tstep2=(Tmax2-Tmin2)/N
+tolerance2=0.95
+'''
+#--------------
+#The original key is:  {'w': 'q', 'v': 'k', 'j': 'i', 'a': 'b', 'r': 'a', 'b': 'u', 'k': 'r', 't': '_', 'o': 'j', 'm': 'x', 'e': 's', 's': 'p', 'q': 'd', 'd': 'g', 'g': 't', 'i': 'w', 'p': 'f', 'h': 'e', '_': 'n', 'y': 'l', 'c': 'o', 'n': 'y', 'x': 'c', 'l': 'z', 'u': 'm', 'z': 'h', 'f': 'v'}
+#The weighted alphabet is:  ____abcddddddddeefghhiijjjjjjklmnnnnoooppppqrrrsstttuvvvvvvvvvvwxyyz
+#The first process took 8812363 steps.
+#The second process took 100000 steps.
+#The deciphered key is:  {'v': '_', 'j': 't', 'w': 'u', 'r': 'o', 'a': 'z', 'b': 'f', 'k': 'p', 't': 's', 'o': 'h', 'm': 'm', 'e': 'v', 's': 'a', 'q': 'd', 'd': 'e', 'g': 'q', 'i': 'l', 'p': 'i', 'x': 'w', 'h': 'c', '_': 'r', 'y': 'y', 'c': 'k', 'n': 'n', 'l': 'x', 'u': 'j', 'z': 'g', 'f': 'b'}
+
+#The original phrase is:  the_answer_to_life_the_universe_and_everything_is_forty_two
+#The jumbled phrase is:  jodvsntid_vjrvxphdvjodvwnped_tdvsnzvded_yjopnqvptvhr_jyvjir
+#The deciphered phrase is:  the_ansler_to_wice_the_universe_ang_everythind_is_corty_tlo
+#The similarity between the two is:  0.8813559322033898
+#===================
+# test 2, war and peace
+'''
+keepspace=True
+
+Tmax1=100
+Tmin1=1
+N1=10000000
+Tstep1=(Tmax1-Tmin1)/N
+tolerance1=0.9
+
+Tmax2=0.1
+Tmin2=0.001
+N2=0
+Tstep2=(Tmax2-Tmin2)/N
+tolerance2=0.95
+'''
+#--------------------
+#The original key is:  {'v': 'o', 'j': 'c', 'w': 'f', 'd': 'i', 'a': 'x', 'b': 'a', 'k': 'y', 's': 'd', 'o': 'j', 'm': 'l', 'e': 'p', 'u': 'n', 'c': 's', 'q': 'b', 'z': 'r', 't': 'w', 'g': 't', 'i': 'v', 'p': '_', 'h': 'm', '_': 'g', 'y': 'e', 'f': 'k', 'x': 'q', 'l': 'u', 'n': 'h', 'r': 'z'}
+#The weighted alphabet is:  ____abcddddddddeefghhiijjjjjjklmnnnnoooppppqrrrsstttuvvvvvvvvvvwxyyz
+#The first process took 8989805 steps.
+#The second process took 0 steps.
+#The deciphered key is:  {'v': '_', 'j': 't', 'w': 'w', 'd': 'e', 'b': 'b', 'k': 'f', 'a': 'u', 'o': 'h', 'm': 'k', 'e': 'v', 'u': 'p', 's': 'a', 'q': 'g', 'z': 'd', 't': 's', 'g': 'x', 'i': 'm', 'p': 'i', 'h': 'c', '_': 'r', 'y': 'y', 'c': 'z', 'n': 'n', 'l': 'q', 'x': 'l', 'r': 'o', 'f': 'j'}
+
+#The original phrase is:  the_answer_to_life_the_universe_and_everything_is_forty_two
+#The jumbled phrase is:  jodvsntid_vjrvxphdvjodvwnped_tdvsnzvded_yjopnqvptvhr_jyvjir
+#The deciphered phrase is:  the_ansmer_to_lice_the_wniverse_and_everything_is_corty_tmo
+#The similarity between the two is:  0.9152542372881356
+#======================
+# test 3, war and peace
+'''
+keepspace=True
+
+Tmax1=100
+Tmin1=1
+N1=10000000
+Tstep1=(Tmax1-Tmin1)/N
+tolerance1=0.95
+
+Tmax2=0.1
+Tmin2=0.001
+N2=0
+Tstep2=(Tmax2-Tmin2)/N
+tolerance2=0.95
+'''
+#-------------------------
+#The original key is:  {'w': 'v', 'v': 'a', 'j': 'p', 's': 'n', 'r': 'f', 'a': 'k', 'b': 'b', 'k': 'y', 't': 'r', 'o': 'c', 'm': 'q', 'e': 'g', 'u': 'w', 'q': 'j', 'd': 's', 'g': 'z', 'i': 'h', 'p': '_', 'h': 'e', '_': 'u', 'y': 'x', 'c': 'd', 'x': 'i', 'l': 'm', 'n': 'l', 'z': 'o', 'f': 't'}
+#The weighted alphabet is:  ____abcddddddddeefghhiijjjjjjklmnnnnoooppppqrrrsstttuvvvvvvvvvvwxyyz
+#The first process took 10000000 steps.
+#The second process took 0 steps.
+#The deciphered key is:  {'v': '_', 'j': 't', 'w': 'b', 'r': 'i', 'b': 'j', 'o': 'h', 'a': 'q', 'k': 'x', 'm': 'w', 'e': 'r', 's': 'p', 'q': 'k', 'd': 'e', 't': 'd', 'g': 'o', 'i': 'v', 'p': 'a', 'x': 'c', 'h': 'g', '_': 'n', 'y': 's', 'c': 'f', 'n': 'l', 'l': 'm', 'u': 'u', 'z': 'y', 'f': 'z'}
+
+#The original phrase is:  the_answer_to_life_the_universe_and_everything_is_forty_two
+#The jumbled phrase is:  jodvsntid_vjrvxphdvjodvwnped_tdvsnzvded_yjopnqvptvhr_jyvjir
+#The deciphered phrase is:  the_pldven_ti_cage_the_blarende_ply_erensthalk_ad_gints_tvi
+#The similarity between the two is:  0.4576271186440678
+#==========================
+# test 4: war and peace
+'''
+keepspace=True
+
+Tmax1=100
+Tmin1=1
+N1=10000000
+Tstep1=(Tmax1-Tmin1)/N
+tolerance1=0.95
+
+Tmax2=0.1
+Tmin2=0.001
+N2=0
+Tstep2=(Tmax2-Tmin2)/N
+tolerance2=0.95
+'''
+#---------------------------------
+#The original key is:  {'v': 'l', 'j': 's', 'w': 'r', 'r': 'c', 'b': 'p', 'o': 'n', 'a': 'u', 'k': 'm', 'm': 'b', 'e': 'w', 'u': 'k', 's': 'v', 'c': 'j', 'q': 'i', 'd': 'o', 't': 'y', 'g': 'e', 'i': 'g', 'p': 'd', 'l': 'h', '_': 't', 'y': 'z', 'f': 'a', 'n': 'q', 'h': 'x', 'x': 'f', 'z': '_'}
+#The weighted alphabet is:  ____abcddddddddeefghhiijjjjjjklmnnnnoooppppqrrrsstttuvvvvvvvvvvwxyyz
+#The first process took 10000000 steps.
+#The second process took 0 steps.
+#The deciphered key is:  {'v': '_', 'j': 't', 'w': 'u', 'r': 'o', 'a': 'j', 'b': 'z', 'k': 'w', 't': 'd', 'o': 'h', 'm': 'v', 'e': 'k', 's': 'i', 'q': 'g', 'd': 'e', 'g': 'm', 'i': 'l', 'p': 'a', 'l': 'x', '_': 'r', 'y': 'y', 'c': 'f', 'n': 'n', 'x': 'b', 'h': 'c', 'u': 'p', 'z': 's', 'f': 'q'}
+
+#The original phrase is:  the_answer_to_life_the_universe_and_everything_is_forty_two
+#The jumbled phrase is:  jodvsntid_vjrvxphdvjodvwnped_tdvsnzvded_yjopnqvptvhr_jyvjir
+#The deciphered phrase is:  the_indler_to_bace_the_unakerde_ins_ekerythang_ad_corty_tlo
+#The similarity between the two is:  0.711864406779661
+#================================
