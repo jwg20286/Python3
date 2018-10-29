@@ -655,13 +655,11 @@ keepspace=True
 Tmax1=100
 Tmin1=1
 N1=10000000
-Tstep1=(Tmax1-Tmin1)/N
 tolerance1=0.95
 # 2nd process: equal representation Markov chain
 Tmax2=0.1
 Tmin2=0.001
 N2=0
-Tstep2=(Tmax2-Tmin2)/N
 tolerance2=0.95
 #------------------------------------------------
 #phrase='theanswertolifetheuniverseandeverythingisfortytwo'
@@ -711,13 +709,11 @@ keepspace=True
 Tmax1=100
 Tmin1=1
 N1=10000000
-Tstep1=(Tmax1-Tmin1)/N
 tolerance1=0.9
 
 Tmax2=0.1
 Tmin2=0.001
 N2=100000
-Tstep2=(Tmax2-Tmin2)/N
 tolerance2=0.95
 '''
 #--------------
@@ -739,13 +735,11 @@ keepspace=True
 Tmax1=100
 Tmin1=1
 N1=10000000
-Tstep1=(Tmax1-Tmin1)/N
 tolerance1=0.9
 
 Tmax2=0.1
 Tmin2=0.001
 N2=0
-Tstep2=(Tmax2-Tmin2)/N
 tolerance2=0.95
 '''
 #--------------------
@@ -767,13 +761,11 @@ keepspace=True
 Tmax1=100
 Tmin1=1
 N1=10000000
-Tstep1=(Tmax1-Tmin1)/N
 tolerance1=0.95
 
 Tmax2=0.1
 Tmin2=0.001
 N2=0
-Tstep2=(Tmax2-Tmin2)/N
 tolerance2=0.95
 '''
 #-------------------------
@@ -795,13 +787,11 @@ keepspace=True
 Tmax1=100
 Tmin1=1
 N1=10000000
-Tstep1=(Tmax1-Tmin1)/N
 tolerance1=0.95
 
 Tmax2=0.1
 Tmin2=0.001
 N2=0
-Tstep2=(Tmax2-Tmin2)/N
 tolerance2=0.95
 '''
 #---------------------------------
