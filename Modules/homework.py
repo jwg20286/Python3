@@ -949,4 +949,105 @@ ax.plot(x2[::],y2[::],'b.',markersize=1)
 ax.plot(xp[::],yp[::],'g.',markersize=1)
 plt.show()
 #================================
+# Homework Last
+# Mass of blackhole
+#=================================
+import numpy as np
+import scipy.optimize as sopt
+import matplotlib.pyplot as plt
+#---------------------------------
+# define fitting functions
+def gauss(x,A,miu,sigma,background): # a modified gaussian function
+    return A*np.exp(-0.5*((x-miu)/sigma)**2)+background
 
+def gauss2(x,A1,miu1,sigma1,A2,miu2,sigma2,background): # two gaussian functions added up
+    return gauss(x,A1,miu1,sigma1,background)+gauss(x,A2,miu2,sigma2,0)
+
+# functions to calculate the black hole's mass
+def Mbh(L,fwhm): # in units of M_sun
+    return 1.3e6*(L*1e-35)**0.57*(fwhm*1e-6)**2.06 # converted km -> m
+
+def Mbh_bass(popt):
+    A=popt[0] # flux=A/sigma/np.sqrt(2*np.pi)
+    wavelength=popt[1] # wavelength = miu
+    sigma=popt[2] # delta_wavelength = sigma
+    # calculate LHa
+    D=155*3.09e22 #distance from earth
+    FHa=0.242e-15
+    LHa=4*np.pi*D**2*FHa #total luminosity
+    # fwhm of velocity
+    fwhm=2*np.sqrt(2*np.log(2))*sigma # delta_wavelength
+    velocity=fwhm/wavelength*299792458 #delta_wavelength => velocity, unit is m/s
+    return Mbh(LHa,velocity)
+#-----------------------------------
+# load data
+f=open('halpha.dat','r')
+wl,flux=np.loadtxt(f,unpack=True)
+wl=wl*1e-10 # convert angstrom -> m
+#===================================
+#fit with 1 peak
+
+# setup initial parameters
+A0=7e-15 #observation from data
+fwhm=4e-9 #observation from data
+background0=1.25e-15 #observation from data
+miu0=6.56e-7 #observation from data
+sigma0=fwhm/2/np.sqrt(2*np.log(2)) #calculate from fwhm
+p0=[A0,miu0,sigma0,background0]
+
+# fit
+popt,pcov=sopt.curve_fit(gauss,wl,flux,p0)
+
+# use fitted parameters to generate a new flux: the fitted flux
+flux_fitted=gauss(wl,*popt)
+
+# plot results
+fig,ax=plt.subplots(1,1)
+ax.plot(wl,flux,'b.',label='data')
+ax.plot(wl,flux_fitted,'r',label='fit')
+ax.set_xlabel('wavelength (m)')
+ax.set_ylabel('flux (W/m$^2$)')
+ax.set_title('1 Gaussian peak fit')
+ax.legend()
+ax.grid()
+plt.show()
+
+# calculate the black hole's mass
+mbh=Mbh_bass(popt)
+print('1 peak fit: mass of blackhole=%e'%mbh)
+#===================================
+# fit with 2 peaks
+
+# setup initial parameters
+A10=5e-15
+fwhm1=4e-9
+miu10=6.56e-7
+sigma10=fwhm1/2/np.sqrt(2*np.log(2))
+
+A20=7e-15
+fwhm2=1e-9
+miu20=6.56e-7
+sigma20=fwhm2/2/np.sqrt(2*np.log(2))
+
+background0=1.25e-15
+
+p0=[A10,miu10,sigma10,A20,miu20,sigma20,background0]
+#-----------------------
+#fit
+popt,pcov=sopt.curve_fit(gauss2,wl,flux,p0)
+
+flux_fitted=gauss2(wl,*popt)
+
+fig,ax=plt.subplots(1,1)
+ax.plot(wl,flux,'b.',label='data')
+ax.plot(wl,flux_fitted,'r',label='fit')
+ax.set_xlabel('wavelength (m)')
+ax.set_ylabel('flux (W/m$^2$)')
+ax.set_title('2 Gaussian peaks fit')
+ax.legend()
+ax.grid()
+plt.show()
+
+mbh=Mbh_bass(popt)
+print('2 peak fit: mass of blackhole=%e'%mbh)
+#===================================
