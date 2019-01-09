@@ -259,15 +259,15 @@ def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,me
 def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,header_metadata=None,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None):
 	'''
 	2017-06-22 11:34
-	Fit FreqSweep type data with lrtz1simfit method consecutively. Parse fitting result of each fit to the next fit.
+	Fit FreqSweep type data with lrtz_1simfit method consecutively. Parse fitting result of each fit to the next fit.
 	Syntax:
 	-------
-	result=lrtzsimfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header[,header_metadata=None,ftimes=1,xtimes=1,ytimes=1,rtimes=1,correctFunc=utl.gainCorrect,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,logname=None,savename=None])
+	result=lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header[,header_metadata=None,ftimes=1,xtimes=1,ytimes=1,rtimes=1,correctFunc=utl.gainCorrect,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,logname=None,savename=None])
 	Parameters:
 	-----------
 	device: Device code, e.g. 'h1m','TF1201'.
 	filenums: File numbers to be fitted, (filelow,filehigh),fitting is done from filelow to filehigh, both filelow and filehigh can be either a list or a single item.
-	fitmode,funcs1,funcs2,sharenum,folds1,folds2,frange,bounds: lrtz1simfit fitting inputs.
+	fitmode,funcs1,funcs2,sharenum,folds1,folds2,frange,bounds: lrtz_1simfit fitting inputs.
 	p0: Initial fitting parameters for the first file.
 	header: list of str, headers corresponding to p0.
 	header_metadata: list of str, metadata of fitted files read from log.
