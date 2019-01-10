@@ -256,9 +256,9 @@ def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,me
 #-----------------------------------------------------------------------
 	return df_Mean,df_Std
 #=======================================================================
-def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,header_metadata=None,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None):
+def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,header_metadata=None,fold=dict(),directory='./',logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None):
 	'''
-	2017-06-22 11:34
+	2019-01-09 20:15
 	Fit FreqSweep type data with lrtz_1simfit method consecutively. Parse fitting result of each fit to the next fit.
 	Syntax:
 	-------
@@ -271,9 +271,10 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 	p0: Initial fitting parameters for the first file.
 	header: list of str, headers corresponding to p0.
 	header_metadata: list of str, metadata of fitted files read from log.
-	f/x/y/rtimes,correctFunc,logname: File load parameters.
+	f/x/y/rtimes,correctFunc,logname: File load parameters; logname is a str representing the full path of the log file.
+	directory: str, directory of the folder that contains the target data files.
 	pMctCalib/mctBranch/Pn: parameters to update Tmct from MCT calibration and new Pn in the designated branch of melting curve. mctBranch='low' or 'high'.
-	savename: Result is written to this file.
+	savename: str, Result is written to this file.
 	Returns:
 	--------
 	result: pandas.DataFrame, fitted results, contains filename,NMR readings, excitation info as well.
@@ -299,7 +300,7 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 	ind=0
 	print('Start-',end='') #progress indicator
 	for filename in piece['Filename']:
-		data=fswp(filename,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+		data=fswp(directory+filename,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
 		if pMctCalib is not None: # update data.Tmct and its relevant
 			_=data.mctC2T(pMctCalib,branch=mctBranch,Pn=Pn)
 		
