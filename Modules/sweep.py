@@ -15,18 +15,19 @@ import Functions as func
 #=======================================================================
 class freqSweep(object):
 	'''
-	2017-06-22 11:16
+	2019-08-02 10:14
 	Class of a single sweep.
 	The sweep column headers are converted to lower cases when assigned to attributes, without underscore in front. Other attributes start with one underscore.
 	This class assumes that its instance and the log files have different headers for all their data columns.
 	Syntax:
 	-------
-	self=freqSweep(filename,[fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
+	self=freqSweep(filename,[fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
 	Parameters:
 	-----------
 	filepath: str, file path of the loaded sweep file.
 	fold: dict, divide a specified attribute by a given number, e.g. {'x':-1} will divide self.x by -1.
 	logname: str, log_file_name in which this file's metadata is stored.
+	mainChannel: str, used when there is no 'f/x/y/r' in the data, and the columns labeled as 'fstr/xstr/ystr/rstr' are to be treated as 'f/x/y/r', mainChannel="the string 'str' that will be appended to 'f/x/y/r' ".
 	correctFunc: function, gain correcting function accounting for frequency rolloff of the lock in, etc.; used when 'g(n)x/y/r' are called.
 	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
 	Returns:
@@ -45,7 +46,7 @@ class freqSweep(object):
 	--when called:
 	self.(g)(n)x/y/r: pandas.Series, if x,y,r exist, they can be gain-corrected with the given correctFunc to account for lockin rolloff, etc.; they can be normalized by the given attribute specified by normByParam; 'gn' can appear together meaning both methods are implemented.
         '''
-	def __init__(self,filename,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp'):
+	def __init__(self,filename,fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,normByParam='VLowVpp'):
 		self._filename=ntpath.basename(filename)
 		self._content=pd.read_csv(filename,delim_whitespace=True)
 		self._gcorrect=correctFunc
@@ -56,6 +57,13 @@ class freqSweep(object):
 		for name in col_names:
 			setattr(self,name.lower(),self._content[name]) 
 		# divide specified attribute by fold[name]
+
+		if mainChannel is not '':
+			setattr(self,'f',self._content['f'+mainChannel])
+			setattr(self,'x',self._content['x'+mainChannel])
+			setattr(self,'y',self._content['y'+mainChannel])
+			setattr(self,'r',self._content['r'+mainChannel])
+
 		for name in fold:
 			setattr(self,name.lower(),getattr(self,name.lower())/fold[name])
 #-----------------------------------------------------------------------

@@ -645,7 +645,7 @@ def freqSweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker
 #def freqSweeps_multiple(*args,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 def freqSweeps_multiple(filename_dict,logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 	'''
-	2018-06-06 16:17
+	2019-08-02 13:03
 	Plots multiple curves in the same figure. When reading the data, this function uses the default correctFunc in sweep.freqSweep class object.
 	Syntax:
 	-------
@@ -653,7 +653,7 @@ def freqSweeps_multiple(filename_dict,logname=None,correctFunc=utl.gainCorrect,n
 	fig,axes,lines=freqSweeps_multiple(filename#1,...,filename#N,'fold'[,...])
 	Parameters
 	----------
-	filename_dict: collections.OrderedDict, filename_dict=collections.OrderedDict([(key1,value1),(key2,value2),(key3,value3),...]), key(s) are file path(s), value(s) are fold(s). 
+	filename_dict: collections.OrderedDict, filename_dict=collections.OrderedDict([(key1,setting1),(key2,setting2),(key3,setting3),...]), key(s) are file path(s), setting(s) are setting(s) parsed to sweep.freqSweep. Each setting is a dictionary that can include key:value pairs for fold, mainChannel. Any missing setting will be set to its default value. For example, filename_dict=collections.OrderedDict( [('tf_000.dat',{'fold':{'x':-1}, 'mainChannel':'0'}), ('tf_001.dat', {'mainChannel':'1'}), ('tf_002.dat', {'fold':{'y':2}})] ) will parse the given settings when loading 'tf_###.dat' where 'tf_001.dat' will see fold={}, and 'tf_002.dat' will see mainChannel=''.
 	logname: str, sweeps log path.
 	correctFunc: frequency roll-off correcting function.
 	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
@@ -683,8 +683,12 @@ def freqSweeps_multiple(filename_dict,logname=None,correctFunc=utl.gainCorrect,n
 
 	lines=[]
 
-	for namekey in filename_dict.keys(): #loop through filenames & folds
-		swpdata=fswp(namekey,fold=filename_dict[namekey],correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+	for namekey in filename_dict.keys(): #loop through filenames & settings
+		if 'fold' not in filename_dict[namekey]:
+		    filename_dict[namekey].update({ 'fold':{} }) #default fold if fold is not given
+		if 'mainChannel' not in filename_dict[namekey]:
+		    filename_dict[namekey].update({ 'mainChannel':''}) #default mainChannel if mainChannel is not given
+		swpdata=fswp(namekey,fold=filename_dict[namekey]['fold'],mainChannel=filename_dict[namekey]['mainChannel'],correctFunc=correctFunc,logname=logname,normByParam=normByParam)
 		if 'all' in pltmode:
 			line=freqSweep_all(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		else:
@@ -696,9 +700,9 @@ def freqSweeps_multiple(filename_dict,logname=None,correctFunc=utl.gainCorrect,n
 	
 	return fig,axes,lines
 #=======================================================================
-def freqSweeps_multiple_1device(device,*filenums,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+def freqSweeps_multiple_1device(device,*filenums,fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 	'''
-	2018-06-06 17:08
+	2019-08-02 15:34
 	Plots multiple curves in the same figure. These curves are named by the same device label. When reading the data, this function uses the default correctFunc in sweep.freqSweep class object.
 	Syntax:
 	-------
@@ -710,6 +714,7 @@ def freqSweeps_multiple_1device(device,*filenums,fold=dict(),logname=None,correc
 	file#N: file numbers.
 	fold: dict, key(s) are the same ones that are accepted by sweep.freqSweep class; value(s) are tuple(s) with same length as number of file# len(filenums), each element of this tuple belongs to the fold of the corresponding file#. e.g. freqSweeps_multiple_1device('mems',0,1,{'f':(0.5,0.5),'x':(2,6)}) means that file 'mems_000.dat' will be loaded by its 'f' devided by 0.5, 'x' devided by 2, and 'mems_001.dat' will be loaded by its 'f' devided by 0.5, 'x' devided by 6.
 	logname: str, sweeps log file path.
+	mainChannel: str or list of str, used when there is no 'f/x/y/r' in the data, and the columns labeled as 'fstr/xstr/ystr/rstr' are to be treated as 'f/x/y/r', mainChannel="the string 'str' that will be appended to 'f/x/y/r' ".
 	correctFunc: frequency roll-off correcting function.
 	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
 	pltmode: plot mode, supports extra 'g/n'.
@@ -726,15 +731,19 @@ def freqSweeps_multiple_1device(device,*filenums,fold=dict(),logname=None,correc
 	from sweep import freqSweep as fswp
 
 	filenames=tuple(map(lambda filenum: utl.mkFilename(device,filenum), filenums))
-	#newArgs=filenames+folds #tuple of filenames and folds
 
+	# make mainChannel a list if it's just a string
+	if isinstance(mainChannel,str):
+	    mainChannel=[mainChannel,]*len(filenames)
 	#construct filename_dict for freqSweeps_multiple
 	filename_dict=[]
 	for i in range(0,len(filenames)):
+	    #build fold
 	    kf=dict()
 	    for key in fold.keys():
 		    kf.update({key:fold[key][i]}) # pick the i'th element from the tuple 'key'
-	    filename_dict+=[(filenames[i],kf)] #pair i'th filename with its fold
+
+	    filename_dict+=[(filenames[i],{'fold':kf,'mainChannel':mainChannel[i]})] #pair i'th filename with its fold
 	filename_dict=OrderedDict(filename_dict)
 
 	fig,axes,lines=freqSweeps_multiple(filename_dict,logname=logname,correctFunc=correctFunc,normByParam=normByParam,pltmode=pltmode,subplots_layout=subplots_layout,figsize=figsize,wspace=wspace,hspace=hspace,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
