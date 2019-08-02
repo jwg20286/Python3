@@ -706,7 +706,7 @@ def freqSweeps_multiple_1device(device,*filenums,fold=dict(),logname=None,mainCh
 	Plots multiple curves in the same figure. These curves are named by the same device label. When reading the data, this function uses the default correctFunc in sweep.freqSweep class object.
 	Syntax:
 	-------
-	fig,axes,lines=freqSweeps_multiple(device,file#1,...,file#N,[,fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	fig,axes,lines=freqSweeps_multiple(device,file#1,...,file#N,[,fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,normByParam='VLowVpp',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
 	fig,axes,lines=freqSweeps_multiple(filename#1,...,filename#N,'fold'[,...])
 	Parameters
 	----------
