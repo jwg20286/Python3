@@ -6,6 +6,7 @@ import numpy as np
 from scipy import fftpack
 import pandas as pd
 from collections import OrderedDict
+import ntpath
 
 import FuncLib
 import Functions as func
@@ -885,9 +886,10 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,l
 	'''
 
 	from sweep import freqSweep as fswp
-
-	popt=utl.fswpFitLoad(filename,filepopt,header) #fetch popt
-	data=fswp(filename,fold=fold,correctFunc=utl.gainCorrect,logname=logname,normByParam=normByParam)
+	
+	basename=ntpath.basename(filename)
+	popt=utl.fswpFitLoad(basename,filepopt,header) #fetch popt
+	data=fswp(filename,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
 	if 'g' in fitmode:
 		y1=data.gx
 		y2=data.gy
