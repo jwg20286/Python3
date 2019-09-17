@@ -843,14 +843,14 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	axes[1][1].grid()
 	return np.array([[line000+line001+line002+line003,line010+line011+line012+line013],[line100+line101,line110+line111]])
 #=======================================================================
-def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,logname=None,fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,logname=None,mainChannel='',fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
 	2017-06-22 11:38
 	Check sim fitting result and plot using fitted parameters read from a file. Assume funcs1&2 as X&Y-channels, and sqrt(x**2+y**2) as R-channel. 
 
 	Syntax:
 	-------
-	fig,axes,lines=fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum[,logname=None,fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10]):
+	fig,axes,lines=fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum[,logname=None,mainChannel='',fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10]):
 
 	Parameters:
 	-----------
@@ -860,6 +860,7 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,l
 	fitmode: str, fit mode used to obtain the popt.
 	funcs1&2: function lists of models for simultaneous fitting.	
 	sharenum: number of parameters shared by funcs1&2.
+	mainChannel: str, channel name appendix for x and y reading in sweep.
 	logname: str, path to the log file name.
 	fold: dict, divide a specified attribute by a given number, e.g. {'x':-1} will divide self.x by -1.
 	correctFunc: function, gain correcting function accounting for frequency rolloff of the lock in, etc.; used when 'g(n)x/y/r' are called.
@@ -889,7 +890,7 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,l
 	
 	basename=ntpath.basename(filename)
 	popt=utl.fswpFitLoad(basename,filepopt,header) #fetch popt
-	data=fswp(filename,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+	data=fswp(filename,fold=fold,correctFunc=correctFunc,logname=logname,mainChannel=mainChannel,normByParam=normByParam)
 	if 'g' in fitmode:
 		y1=data.gx
 		y2=data.gy
