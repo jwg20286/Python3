@@ -178,7 +178,7 @@ class nmr(object):
 		perr: Standard deviation associated with popt.
 		fig: figure handle.
 		axes: 1x3 axes handles array.
-		lines: lines output from Plotting.fitChecknmr()a.
+		lines: lines output from Plotting.fitChecknmr().
 		Note:
 		-----
 		Create attribute self.popt after running.
