@@ -167,7 +167,7 @@ def nmrSingle(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,m
 	-----------
 	axis: the axis to plot into.
 	swpdata: nmr.nmr class.
-	pltmode: str, plot mode, examples: 'td'=time_vs_FID, 'fi'=frequency_vs_fftFIDimag... Can recognize 't/d/f/r/i/m/p', pltmode is case insensitive.
+	pltmode: str, plot mode, examples: 'td'=time_vs_FID, 'fi'=frequency_vs_fftFIDimag... Can recognize 't/d/f/r/i/m/p' meaning 'time/free-induction-decay/frequency/fft-real-part/fft-imagenary-part/fft-magnitude/phase' respectively, pltmode is case insensitive.
 	iter,fillstyle,markeredgestyle,markersize,linewidth: axis settings.
 	legflag: show legend if true.
 	legloc: legend location.

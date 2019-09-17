@@ -143,6 +143,13 @@ class nmr(object):
 #=======================================================================
 	def plot(self,pltmode,figsize=(15,5),wspace=0.4,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 		'''
+		Plot nmr signal.
+		Syntax:
+		plot(pltmode[,figsize=(15,5),wspace=0.4,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+		pltmode: str, plot mode, examples: 'td'=time_vs_FID, 'fi'=frequency_vs_fftFIDimag... Can recognize 't/d/f/r/i/m/p' meaning 'time/free-induction-decay/frequency/fft-real-part/fft-imagenary-part/fft-magnitude/phase' respectively, pltmode is case insensitive.
+		figsize,wspace,hspace,iter,fillstyle,markeredgewidth,markersize,linewidth,legloc,bbox_to_anchor,legsize: plot settings.
+		Returns:
+		fig,ax,line: respective plotting handles.
 		'''
 		pltmode=pltmode.lower()
 		if 'all' not in pltmode: #individual plot
