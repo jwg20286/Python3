@@ -561,9 +561,10 @@ def build_condition_dataframe(frange,dataframe,colname):
 	AndCond=True
 	OrCond=False
 	for l,u in zip(lb,ub):
-		condition1=dataframe.index>=dataframe[dataframe[colname]==l].index.tolist()[0] #choose first if multiple matches are found as lower bound
-		condition2=dataframe.index<=dataframe[dataframe[colname]==u].index.tolist()[-1] #choose last if multiple matches are found as upper bound
-		condition=condition1 & condition2 #select the piece between lower and upper bounds
+	#	condition1=dataframe.index>=dataframe[dataframe[colname]==l].index.tolist()[0] #choose first if multiple matches are found as lower bound
+	#	condition2=dataframe.index<=dataframe[dataframe[colname]==u].index.tolist()[-1] #choose last if multiple matches are found as upper bound
+	#	condition=condition1 & condition2 #select the piece between lower and upper bounds
+		condition=dataframe[colname].between(l,u)
 		AndCond=AndCond & condition
 		OrCond=OrCond | condition
 	return AndCond,OrCond
