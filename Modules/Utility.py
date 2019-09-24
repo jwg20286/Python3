@@ -491,7 +491,9 @@ def range_condition_series(lb,ub,x):
 	AndCond=True
 	OrCond=False
 	for l,u in zip(lb,ub):
-		condition=x.between(l,u) # includes boundary points
+		condition1=x.between(l,u) # includes boundary points
+		condition2=x.between(u,l) # allow to recognize reversed bounds
+		condition=condition1 | condition2
 		AndCond=AndCond & condition
 		OrCond=OrCond | condition
 	return AndCond,OrCond
@@ -536,15 +538,15 @@ def build_condition_series(bounds,x):
 	AndCond,OrCond=range_condition_series(lb,ub,x)
 	return AndCond,OrCond
 #=======================================================================
-def build_condition_dataframe(frange,dataframe,colname):
+def build_condition_dataframe(bounds,dataframe,colname):
 	'''
 	Check input dataframe under column name specified by colname, find the pieces fall between the range specified by frange.
 	Syntax:
 	-------
-	AndCond,OrCond=build_condition_dataframe(frange,dataframe,colname)
+	AndCond,OrCond=build_condition_dataframe(bounds,dataframe,colname)
 	Parameters:
 	-----------
-	frange: (lowb,highb) format range, lowb is a single item, or lowb is a list of all the lowbounds, corresponding to some high bounds stored in highb. lowb==highb is allowed.
+	bounds: (lowb,highb) format range, lowb is a single item, or lowb is a list of all the lowbounds, corresponding to some high bounds stored in highb. lowb==highb is allowed.
 	dataframe: pandas.DataFrame type input log.
 	colname: column name under which the frange is applied, and the conditions are built.
 	Returns:
@@ -556,17 +558,7 @@ def build_condition_dataframe(frange,dataframe,colname):
 	This program raises error if the column specified by colname is not single-valued.
 	Here, frange refers to file_range, but the program can be implemented for other columns as well.
 	'''
-	n=max(np.asarray(frange[0]).size,np.asarray(frange[1]).size)
-	lb,ub=prepare_bounds(frange,n)
-	AndCond=True
-	OrCond=False
-	for l,u in zip(lb,ub):
-	#	condition1=dataframe.index>=dataframe[dataframe[colname]==l].index.tolist()[0] #choose first if multiple matches are found as lower bound
-	#	condition2=dataframe.index<=dataframe[dataframe[colname]==u].index.tolist()[-1] #choose last if multiple matches are found as upper bound
-	#	condition=condition1 & condition2 #select the piece between lower and upper bounds
-		condition=dataframe[colname].between(l,u)
-		AndCond=AndCond & condition
-		OrCond=OrCond | condition
+	AndCond,OrCond=build_condition_series(bounds,dataframe[colname])
 	return AndCond,OrCond
 #=======================================================================
 def partial_dataframe_mean(frange,dataframe,colname,droplabels=None,dropAxis=1,meanAxis=0):
