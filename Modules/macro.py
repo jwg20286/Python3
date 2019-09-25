@@ -280,6 +280,11 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 	result: pandas.DataFrame, fitted results, contains filename,NMR readings, excitation info as well.
 	'''
 	log=pd.read_csv(logname,delim_whitespace=True)
+
+	n=max(np.asarray(filenums[0]).size,np.asarray(filenums[1]).size) #choose the longer one's dimension as n
+	lb,ub=utl.prepare_bounds(filenums,n)
+	filenums=(lb,ub)
+
 	dirname=ntpath.dirname(device)
 	basename=ntpath.basename(device)
 	vmkfn=np.vectorize(utl.mkFilename)#create filenames
@@ -298,30 +303,35 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 
 	ind=0
 	print('Start-',end='') #progress indicator
-	for filename in piece['Filename']:
-		data=fswp(dirname+'/'+filename,mainChannel=mainChannel,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
-		if pMctCalib is not None: # update data.Tmct and its relevant
-			_=data.mctC2T(pMctCalib,branch=mctBranch,Pn=Pn)
+	for i in range(0,n):
+		indexl=piece[piece['Filename']==filerange[0][i]].index.values[0]
+		indexu=piece[piece['Filename']==filerange[1][i]].index.values[0]
+		direction=int(np.sign(indexu-indexl+0.5)) # +0.5 so that 0->1
+		piecei=piece.loc[indexl:indexu:direction] # clip piece, order of rows depend on frange pairs, it can go backwards	
+		for filename in piecei['Filename']:
+			data=fswp(dirname+'/'+filename,mainChannel=mainChannel,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+			if pMctCalib is not None: # update data.Tmct and its relevant
+				_=data.mctC2T(pMctCalib,branch=mctBranch,Pn=Pn)
 		
-		#scale po according to excitation, this will scale phase as well.
-		if ind==0:
-			po=p0
-		else:
-			po=po*getattr(data,normByParam.lower())
+			#scale po according to excitation, this will scale phase as well.
+			if ind==0:
+				po=p0
+			else:
+				po=po*getattr(data,normByParam.lower())
 
-		# do fit, collect: optimized parameters, std dev, residual.
-		popt,_,perr,res,_,_=data.lrtz_1simfit(fitmode,funcs1,funcs2,sharenum,p0,folds1=folds1,folds2=folds2,frange=frange,bounds=bounds) #fit
-		po=popt/getattr(data,normByParam.lower()) #parse normalized fitted parameters to next fit, this will normalize phase as well, thus only applicable when phase and background terms are close to zero.
+			# do fit, collect: optimized parameters, std dev, residual.
+			popt,_,perr,res,_,_=data.lrtz_1simfit(fitmode,funcs1,funcs2,sharenum,p0,folds1=folds1,folds2=folds2,frange=frange,bounds=bounds) #fit
+			po=popt/getattr(data,normByParam.lower()) #parse normalized fitted parameters to next fit, this will normalize phase as well, thus only applicable when phase and background terms are close to zero.
 
-		condition=[(cn not in header_metadata) for cn in result.columns]
-		result.loc[ind][condition]=np.append(popt,perr) #assign fitted values
-		result.loc[ind]['Filename']=filename
-		result.loc[ind]['Epoch']=data._epoch
-		for name in header_metadata:
-			if name not in ['Filename','Epoch']:
-				result.loc[ind][name]=getattr(data,name.lower())
-		ind+=1
-		print('-%s_%.2f%%-'%(re.sub(r'[^0-9]','',filename)[1::],(ind/length*100)),end='') #update batch progress
+			condition=[(cn not in header_metadata) for cn in result.columns]
+			result.loc[ind][condition]=np.append(popt,perr) #assign fitted values
+			result.loc[ind]['Filename']=filename
+			result.loc[ind]['Epoch']=data._epoch
+			for name in header_metadata:
+				if name not in ['Filename','Epoch']:
+					result.loc[ind][name]=getattr(data,name.lower())
+			ind+=1
+			print('-%s_%.2f%%-'%(re.sub(r'[^0-9]','',filename)[1::],(ind/length*100)),end='') #update batch progress
 	print('-Finished',end='')
 	
 	if savename is not None: #save to specified file
