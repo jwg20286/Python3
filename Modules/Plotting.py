@@ -156,8 +156,9 @@ def sweepsAll(device,*args,logname=None,correctFunc=utl.gainCorrect,pltmode='all
 	
 	return fig,axes,lines
 #=======================================================================
-def nmrSingle(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def nmrSingle_old(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
+	DEPRECATED
 	Plot nmr sweep data based on input plot mode on given axis.
 	This function does not create its own figure window.
 	Syntax:
@@ -208,8 +209,9 @@ def nmrSingle(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,m
 	axis.grid()
 	return line
 #=======================================================================
-def nmrAll(axes,swpdata,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def nmrAll_old(axes,swpdata,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
+	DEPRECATED
 	Plot nmr data in a 'td'+'fr'+'fi' fashion.
 	This function does not create its own figure window.
 	Syntax:
@@ -232,8 +234,9 @@ def nmrAll(axes,swpdata,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4
 	line2=nmrSingle(axes[2],swpdata,'fi',iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
 	return np.array(line0+line1+line2)
 #=======================================================================
-def nmrsAll(*filenums,pltmode='all',tstep=2e-7,zerofillnum=0,logname='NLog_001.dat',figsize=(15,5),wspace=0.9,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+def nmrsAll_old(*filenums,pltmode='all',tstep=2e-7,zerofillnum=0,logname='NLog_001.dat',figsize=(15,5),wspace=0.9,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 	'''
+	DEPRECATED
 	Plots multiple nmr signal in the same figure.
 	Syntax:
 	-------
@@ -277,6 +280,7 @@ def nmrsAll(*filenums,pltmode='all',tstep=2e-7,zerofillnum=0,logname='NLog_001.d
 #=======================================================================
 def fitCheckSim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=(-np.inf,np.inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
+	DEPRECATED
 	Check sim fitting result and plot. Assume funcs1&2 as X&Y-channels, and sqrt(x**2+y**2) as R-channel. 
 	Syntax:
 	-------
@@ -372,7 +376,9 @@ def fitCheckSim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=
 
 #=======================================================================
 def fitCheckSim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,logname=None,ftimes=1,xtimes=1,ytimes=1,rtimes=1,correctFunc=utl.gainCorrect,frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
-
+	'''
+	DEPRECATED
+	'''
 	from FreqSweep import FreqSweep as freqswp
 
 	popt=utl.fswpFitLoad(filename,filepopt,header)
@@ -404,6 +410,7 @@ def fitCheckSim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,log
 #=======================================================================
 def fitChecknmr(axes,data,popt,marker='.',markersize=1,linewidth=1,bbox_to_anchor=(0,1),legloc='lower left',legsize=8):
 	'''
+	DEPRECATED
 	Plot nmr data. FID vs fitted FID; FFT FID vs fitted FFT FID, both real and imaginary. Zerofilling is assumed.
 	Syntax:
 	-------
@@ -452,6 +459,7 @@ def fitChecknmr(axes,data,popt,marker='.',markersize=1,linewidth=1,bbox_to_ancho
 #=======================================================================
 def fitChecknmr_file(filenmr,filepopt,tstep=2e-7,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,bbox_to_anchor=(0,1),legloc='lower left',legsize=8):
 	'''
+	DEPRECATED
 	Check NMR fit by reading fitted parameters from saved file.
 	Syntax:
 	-------
@@ -914,6 +922,207 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,l
 	fig,axes=plt.subplots(2,2,figsize=figsize)
 	fig.subplots_adjust(wspace=wspace,hspace=hspace)
 	lines=fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+	return fig,axes,lines
+#=======================================================================
+def nmr_single(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	2019-09-25 15:44
+	Plot nmr sweep data based on input plot mode on given axis.
+	This function does not create its own figure window.
+	Syntax:
+	-------
+	line=nmr_single(axis,swpdata,pltmode[,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	axis: the axis to plot into.
+	swpdata: nmr.nmr class.
+	pltmode: str, plot mode, examples: 'td'=time_vs_FID, 'fi'=frequency_vs_fftFIDimag... Can recognize 't/d/f/r/i/m/p' meaning 'time/free-induction-decay/frequency/fft-real-part/fft-imagenary-part/fft-magnitude/phase' respectively, pltmode is case insensitive.
+	iter,fillstyle,markeredgestyle,markersize,linewidth: axis settings.
+	legflag: show legend if true.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point, (0,0) is lower left of plot axis.
+	legsize: legend font size.
+	Returns:
+	-------
+	line: the plotted line's handle.
+	'''
+	def translatePltmode(str):
+		if str=='t':# Time
+			str=str.replace('t','_t0fill')
+		elif str=='d':# free-induction-Decay
+			str=str.replace('d','_nmr0fill')
+		elif str=='f':# Frequency
+			str=str.replace('f','_f0fill')
+		elif str=='r':# Real part of fft
+			str=str.replace('r','_fftnmr0fill.real')
+		elif str=='i':# Imaginary part of fft
+			str=str.replace('i','_fftnmr0fill.imag')
+		elif str=='m':# Magnitude of fft
+			str=str.replace('m','_fftnmr0fill_m')
+		elif str=='p':
+			str=str.replace('p','_fftnmr0fill_ph')
+		else:
+			raise TypeError('Unrecognizable input pltmode')
+		return str
+	
+	pltmode=pltmode.lower()
+	xis=translatePltmode(pltmode[0])
+	yis=translatePltmode(pltmode[1])
+
+	line=axis.plot(eval('swpdata.'+xis),eval('swpdata.'+yis),color=utl.colorCode(iter%utl.lencc()),marker=utl.markerCode(iter%23),fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linestyle=utl.linestyleCode(iter%4),linewidth=linewidth,label=swpdata.filename.split('.')[0]) #plot,rotates color,marker,linestyle
+	axis.set_xlabel(utl.mkNmrAxLabel(pltmode[0])) #label axes
+	axis.set_ylabel(utl.mkNmrAxLabel(pltmode[1]))
+	if legflag: # determine if show legend
+		axis.legend(bbox_to_anchor=bbox_to_anchor,loc=legloc,prop={'size':legsize}) #legend format: 'device_filenum'
+	axis.grid()
+	return line
+#=======================================================================
+def nmr_all(axes,swpdata,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	2019-09-25 15:46
+	Plot nmr data in a 'td'+'fr'+'fi' fashion.
+	This function does not create its own figure window.
+	Syntax:
+	-------
+	line=nmr_all(axes,swpdata[,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	axes: 1x3 axes matrix, dimensions beyond 2 will be ignored.
+	swpdata: nmr.nmr class.
+	iter,fillstyle,markeredgewidth,markersize,linewidth: axis settings.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns:
+	--------
+	line: tuple with all 3 lines' handles
+	'''
+	line0=nmr_single(axes[0],swpdata,'td',iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+	line1=nmr_single(axes[1],swpdata,'fr',iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
+	line2=nmr_single(axes[2],swpdata,'fi',iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
+	return np.array(line0+line1+line2)
+#=======================================================================
+def nmrs_all(*filenums,pltmode='all',dt=2e-7,zerofillnum=0,logname=None,figsize=(15,5),wspace=0.9,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+	'''
+	2019-09-25 15:46
+	Plots multiple nmr signal in the same figure.
+	Syntax:
+	-------
+	fig,axes,lines=nmrs_all(file#1,...,file#N,[,pltmode='all',tstep=2e-7,zerofillnum=0,figsize=(15,5),wspace=0.9,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	fig,axes,lines=axes,sweepsAll(device,file#1,...,file#N,[,pltmode='all',tstep=2e-7,zerofillnum=0,figsize=(15,5),wspace=0.9,hspace=0.3,markersize=4,linewidth=1,iter=0,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	Parameters
+	---------- file#N: file numbers.
+	pltmode: plot mode, supports 'all' and 't/d/f/r/i/m/p'.
+	tstep,zerofillnum: nmr file reading parameters.
+	logname: nmr log path.
+	figsize,wspace,hspace,iter,fillstyle,markeredgewidth,markersize,linewidth: fig and axes settings.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns
+	-------
+	fig,axes,lines: handles, each element of the 'lines' tuple is a tuple of four 'line's from fx/fy/fr/xy plots.
+	'''
+	from nmr import nmr
+
+	pltmode=pltmode.lower() #make input case insensitive
+	
+	if 'all' in pltmode:
+		fig,axes=plt.subplots(1,3,figsize=figsize)
+		fig.subplots_adjust(wspace=wspace,hspace=hspace)
+	else:
+		fig,axes=plt.subplots(1,1,figsize=figsize)
+	
+	lines=[]
+	for filenum in filenums:
+		swpdata=nmr(utl.mkFilename('NMR',filenum),tstep=tstep,zerofillnum=zerofillnum,logname=logname)
+		if 'all' in pltmode:
+			line=nmrAll(axes,swpdata,iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		else:
+			line=nmrSingle(axes,swpdata,pltmode,iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		lines.append(line)
+		iter+=1
+	
+	return fig,axes,lines
+#=======================================================================
+def fitCheck_nmr(axes,data,popt,marker='.',markersize=1,linewidth=1,bbox_to_anchor=(0,1),legloc='lower left',legsize=8):
+	'''
+	2019-09-25 15:51
+	Plot nmr data. FID vs fitted FID; FFT FID vs fitted FFT FID, both real and imaginary. Zerofilling is assumed.
+	Syntax:
+	-------
+	lines=fitCheck_nmr(axes,data,popt[,marker='.',markersize=1,linewidth=1,bbox_to_anchor=(0,1),legloc='lower left',legsize=8])
+	Parameters:
+	-----------
+	axes: 1x3 subplots axes to plot onto.
+	data: nmr signal data.
+	popt: Fitted parameters describing the FFT FID peaks.
+	marker,markersize,linewidth: Fitted curve plot settings.
+	bbox_to_anchor,lfilenmr.egloc,legsize: legend position and size.
+	Returns:
+	--------
+	lines: matrix, lines[0][0]=raw FID data, lines[0][1]=fitted FID data; lines[1][0]=raw FFT real, lines[1][1]=fit to the smoothed FFT real; lines[2][0]=raw FFT imag, lines[2][1]=fit to the smoothed FFT imag.
+	Note:
+	-----
+	marker,markersize,linewidth do not affact raw data plot or smoothed data plot, but only the fitted curves.
+	'''
+	def newr(f,*p):
+		return FuncLib.FID0ffts(f,*p,zerofillnum=data._zerofillnum).real
+	def newi(f,*p):
+		return FuncLib.FID0ffts(f,*p,zerofillnum=data._zerofillnum).imag
+	newFID=FuncLib.FID0s(data._t,*popt,zerofillnum=data._zerofillnum)
+	newFFTr=newr(data._f,*popt)
+	newFFTi=newi(data._f,*popt)
+
+	line00=axes[0].plot(data._t0fill,data._nmr0fill,marker='.',markersize=1,linewidth=1,color='blue',label=data.filename) #show FID, label with filename
+	line01=axes[0].plot(data._t0fill,newFID,marker=marker,markersize=markersize,linewidth=0,color='red') #show fitted FID
+	axes[0].set_xlabel('Time (s)')
+	axes[0].set_ylabel('FID Amplitude (a.u.)')
+	axes[0].ticklabel_format(axis='x',style='sci',scilimits=(0,0))
+	axes[0].legend(bbox_to_anchor=bbox_to_anchor,loc=legloc,prop={'size':legsize}) #legend
+
+	line10=axes[1].plot(data._f0fill,data._fftnmr0fill.real,marker='.',markersize=1,linewidth=2,color='blue') #show FFT FID real part
+	line11=axes[1].plot(data._f0fill,newFFTr,marker=marker,markersize=markersize,linewidth=linewidth,color='red') #show fited FFT FID real part
+	axes[1].set_xlabel('Frequency (Hz)')
+	axes[1].set_ylabel('FFT Real (a.u.)')
+	axes[1].ticklabel_format(axis='x',style='sci',scilimits=(0,0))
+
+	line20=axes[2].plot(data._f0fill,data._fftnmr0fill.imag,marker='.',markersize=1,linewidth=2,color='blue') #show FFT FID imag part
+	line21=axes[2].plot(data._f0fill,newFFTi,marker=marker,markersize=markersize,linewidth=linewidth,color='red') #show fitted FFT FID imag part
+	axes[2].set_xlabel('Frequency (Hz)')
+	axes[2].set_ylabel('FFT Imaginary (a.u.)')
+	axes[2].ticklabel_format(axis='x',style='sci',scilimits=(0,0))
+	return np.array([line00+line01,line10+line11,line20+line21])
+#=======================================================================
+def fitCheck_nmr_file(filenmr,filepopt,tstep=2e-7,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,bbox_to_anchor=(0,1),legloc='lower left',legsize=8):
+	'''
+	2019-09-25 15:51
+	Check NMR fit by reading fitted parameters from saved file.
+	Syntax:
+	-------
+	fig,axes,lines=fitCheck_nmr_file(filenmr,filepopt[,tstep=2e-7,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,bbox_to_anchor=(0,1),legloc='lower left',legsize=8])
+	Parameters:
+	-----------
+	filenmr: str, NMR file name.
+	filepopt: str, saved file of optimized parameters, assumed whitespace as delimiter.
+	tstep: NMR FID reading parameter.
+	figsize,wspace,hspace: figure layout.
+	marker,markersize,linewidth: line settings.
+	bbox_to_anchor,legloc,legsize: legend settings.
+	Returns:
+	--------
+	fig: figure handle.
+	axes: 1x3 subplots axes to plot onto.
+	lines: plotted lines handles.
+	'''
+	from nmr import nmr
+
+	popt,_,zerofillnum=utl.nmrFitLoad(filenmr,filepopt)
+	data=nmr(filenmr,tstep=tstep,zerofillnum=zerofillnum)
+	
+	fig,axes=plt.subplots(1,3,figsize=figsize)
+	fig.subplots_adjust(wspace=wspace,hspace=hspace)
+	lines=fitCheck_nmr(axes,data,popt,marker=marker,markersize=markersize,linewidth=linewidth,bbox_to_anchor=bbox_to_anchor,legloc=legloc,legsize=legsize)
 	return fig,axes,lines
 #=======================================================================
 
