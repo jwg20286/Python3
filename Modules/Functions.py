@@ -472,18 +472,17 @@ def nmr1simfit(data,p0,window_size,order,sfrange=(-np.inf,np.inf),deriv=0,rate=1
 
 	return popt,pcov,perr
 #=======================================================================
-def nmr_1simfit(data,p0,window_size,order,sfrange=(-np.inf,np.inf),deriv=0,rate=1,bounds=(-np.inf,np.inf),pltflag=0,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=8):
+def nmr_1simfit(data,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=8):
 	'''
 	2019-09-25 15:45
 	Smooth FFT FID and then fit to several peaks for nmr.nmr object class.
 	Syntax:
 	-------
-	popt,pcov,perr=nmr_1simfit(data,p0,window_size,order[,sfrange=(-np.inf,np.inf),deriv=0,rate=1,bounds=(-np.inf,np.inf),pltflag=0,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=8])
+	popt,pcov,perr=nmr_1simfit(data,p0[,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=8])
 	Parameters:
 	-----------
-	p0: Initial fitting parameters, format is [s01,T1,f01,phase1,s02,T2,f02,phase2,...], length=4xN.
-	window_size,order,deriv,rate: savitzky_golay smooth method input parameters.
-	sfrange: Frequency range to perform smoothing, boundary included.
+	p0: list; initial fitting parameters, format is [s01,T1,f01,phase1,s02,T2,f02,phase2,...], length=4xN.
+	frange: (lb,ub); lower and upper bound of the frequency range for fitting.
 	bounds: Fitting parameter bounds, for scipy.optimize.curve_fit.
 	pltflag: plot flag.
 	figsize,wspace,hspace: figure and subplots spacing settings.
@@ -495,22 +494,21 @@ def nmr_1simfit(data,p0,window_size,order,sfrange=(-np.inf,np.inf),deriv=0,rate=
 	pcov: Covariance output from scipy.optimize.curve_fit.
 	perr: Standard deviation associated with popt.
 	'''
-	snmr=data.smooth(sfrange,window_size=window_size,order=order,deriv=deriv,rate=rate)
-	p0=np.array(p0)
-	#numpk=int(p0.size/4) #number of peaks in FFT, 4=([s0,T,f0,phase])
-	
+	p0=np.asarray(p0)
+	_,OrCond=utl.build_condition(frange,data._f0fill) # prepare to isolate data in the frange only
+
 	#create function that takes only f and p as inputs
 	#create function calculate real part of FuncLib.FID0fft combined from several peaks
 	def newr(f,*p):
-		return FuncLib.FID0ffts(f,*p,zerofillnum=data._zerofillnum).real
+		return FuncLib.FID0ffts(f,*p,zerofillnum=data._zerofillnum).real[OrCond]
 	#create function calculate imaginary part of FuncLib.FID0fft combined from several peaks	
 	def newi(f,*p):
-		return FuncLib.FID0ffts(f,*p,zerofillnum=data._zerofillnum).imag
+		return FuncLib.FID0ffts(f,*p,zerofillnum=data._zerofillnum).imag[OrCond]
 	#create function calculate real and imaginary parts simultaneously, output 1-D array with [real,imag] format
 	def new(f,*p):
 		return np.append(newr(f,*p),newi(f,*p))
-	
-	y=np.append(snmr.real,snmr.imag) #fit to this
+
+	y=np.append(data._fftnmr0fill[OrCond].real,data._fftnmr0fill[OrCond].imag) #fit to data in this frange
 	popt,pcov=scipy.optimize.curve_fit(new,data._f,y,p0=p0,bounds=bounds) # do fit
 	perr=np.sqrt(np.diag(pcov))
 #--------------------------------plot-----------------------------------
@@ -520,7 +518,6 @@ def nmr_1simfit(data,p0,window_size,order,sfrange=(-np.inf,np.inf),deriv=0,rate=
 		lines=Plotting.fitCheck_nmr(axes,data,popt,marker=marker,markersize=markersize,linewidth=linewidth,bbox_to_anchor=(0,1),legloc='lower left',legsize=8)
 		lines[0][0].set_zorder(1) #plot FID at bottom
 		lines[0][1].set_zorder(10) #plot fitted FID on top
-		axes[0].plot(data._t0fill,fftpack.ifft(snmr).real,marker='.',markersize=1,linewidth=0,color='greenyellow',zorder=9) #show smoothed FID, beneath fitted FID line.
 		return popt,pcov,perr,fig,axes,lines
 
 	return popt,pcov,perr

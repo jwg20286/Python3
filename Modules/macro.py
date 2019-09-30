@@ -24,6 +24,7 @@ from nmr import nmr
 #=======================================================================
 def lrtzsimfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,ftimes=1,xtimes=1,ytimes=1,rtimes=1,correctFunc=utl.gainCorrect,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,logname=None,savename=None):
 	'''
+	DEPRECATED
 	Fit FreqSweep type data with lrtz1simfit method consecutively. Parse fitting result of each fit to the next fit.
 	Syntax:
 	-------
@@ -100,6 +101,7 @@ def lrtzsimfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,ft
 #=======================================================================
 def nmrsimfit_batch(filenums,p0,window_size,order,device='NMR',tstep=2e-7,zerofillnum=0,sfrange=(-np.inf,np.inf),deriv=0,rate=1,bounds=(-np.inf,np.inf),logname='NLog_001.dat',savename=None):
 	'''
+	DEPRECATED
 	Do nmr1simfit consecutively. Each fit's optimized parameters, popt, will be transferred to the next file as an input to start fitting with.
 	Syntax:
 	-------
@@ -338,6 +340,71 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 		if os.path.isfile(savename): #file already exists
 			result.to_csv(savename,sep='\t',mode='a',na_rep=np.nan,index=False,header=False,float_format='%.12e'.format)#append w/o header
 		else: #file doesn't exist
+			result.to_csv(savename,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save
+	return result
+#=======================================================================
+def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),logpath=None,dtLabel='dt_s',savename=None):
+	'''
+	Do nmr_1simfit consecutively. Each fit's optimized parameters, popt, will be transferred to the next file as an input to start fitting with.
+	Syntax:
+	-------
+	result=nmr_1simfit_batch(device,filenums,p0[,dt=2e-7,zerofillnum=0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),logpath=None,dtLabel='dt_s',savename=None)
+	Parameters:
+	-----------
+	device: device code.
+	filenums: (startfilenum,endfilenum), files within range(boundary included) will be fitted. startfile can be a single item or a list of filenames to start fitting with. The same goes with endfile, e.g., (['h1m_001.dat','h1m_099.dat'],['h1m_050.dat','h1m_233.dat']) will fit 'h1m' files 001-050 and 099-233. It is allowed to have start/endfile be a single item while the other being a list, in which case the single item is shared to be the universal start/endfile.
+	p0: Initial fitting parameters for fileI.
+	dt: NMR FID time domain spacing, only used if log is missing dt info.
+	zerofillnum: Number of zerofilling points for FID signal.
+	frange: (lb,ub); Frequency range lower/upper bounds for FFT FID within which smoothing is done.
+	bounds: scipy.optimize.curve_fit parameter boundaries input.
+	logpath: str; NMR log file path.
+	dtLabel: str; the attribute that should contain the time step info.
+	savename: If exists, the output result will be saved to this file.
+	Returns:
+	--------
+	result: pandas.DataFrame, including fitted filenames and associated meta data.
+	'''
+	log=pd.read_csv(logpath,delim_whitespace=True)
+	# fetch the log associated with nmr data to be fitted, use union of all ranges
+	dirname=ntpath.dirname(device)
+	basename=ntpath.basename(device)
+	vfunc=np.vectorize(utl.mkFilename)
+	filerange=(vfunc(basename,filenums[0]),vfunc(basename,filenums[1]))
+
+	_,OrCond=utl.build_condition_dataframe(filerange,log,'Filename') #take union of all ranges
+	piece=log[OrCond] #these files will be fitted
+
+	#prepare to do consecutive fit
+	#create empty dataframe to store fitting results
+	length=len(piece.index)
+	index=np.linspace(0,length-1,length,dtype=int) #create index
+	header=utl.mknmrp0Header(len(p0))
+	header0=['Filename','Epoch','zerofillnum']
+	headerperr=[elem+'perr' for elem in header]
+	Header=header0+header+headerperr
+	result=pd.DataFrame(index=index,columns=Header) #empty dataframe
+	po=p0 #parameter guess for the first file
+	ind=0
+	print('Start-',end='') #progress indicator
+	for filename in piece['Filename']:
+		data=nmr(dirname+'/'+filename,zerofillnum=zerofillnum,logpath=logpath,dtLabel=dtLabel,dt=dt)
+		popt,_,perr=data.fit(po,frange=frange,bounds=bounds) # use default pltflag=0
+		po=popt
+
+		condition=[(cn not in header0) for cn in result.columns]
+		result.loc[ind][condition]=np.append(popt,perr) # assign fitted values
+		result.loc[ind]['Filename']=data._filename # nmr filename
+		result.loc[ind]['Epoch']=data._epoch # nmr epoch second
+		result.loc[ind]['zerofillnum']=zerofillnum # zerofillnum
+		ind+=1
+		print('-%s-%.2f%%-'%(re.sub(r'[^0-9]','',filename)[0::],ind/length*100),end='') #update progress
+	print('-Finished',end='')
+
+	if savename is not None : # save to specified file
+		if os.path.isfile(savename): #file already exists
+			result.to_csv(savename,sep='\t',mode='a',na_rep=np.nan,index=False,header=False,float_format='%.12e'.format)#append w/o header
+		else : #file doesn't exist
 			result.to_csv(savename,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save
 	return result
 #=======================================================================

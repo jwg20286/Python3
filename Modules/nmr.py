@@ -206,7 +206,6 @@ class nmr_old(object):
 			return popt,pcov,perr,fig,axes,lines
 		return popt,pcov,perr
 #=======================================================================
-
 class nmr(object):
 	'''
 	2019-09-25 16:18
@@ -259,7 +258,6 @@ class nmr(object):
 		col_names=self._content.columns.tolist()
 		for name in col_names:
 			setattr(self,name.lower(),self._content[name].values)
-
 #-----------------------------------------------------------------------
 		# read log content row
 		if logpath is not None:
@@ -334,38 +332,6 @@ class nmr(object):
 		_,phase=vfunc(self._fftnmr0fill)
 		return phase
 #=======================================================================
-	def smooth(self,frange,window_size,order,deriv=0,rate=1):
-		'''
-		2019-09-25 16:17
-		Smooth self._fftnmr0fill with a Savitzky-Golay filter.
-		Syntax:
-		-------
-		sfftnmr0fill=smooth(frange,window_size,order[,deriv=0,rate=1])
-		frange: Frequency range array, [low,high] format. Signal within range will be smoothed, boundary included.
-		window_size: int; the length of the window. Must be odd integer.
-		order: int; order of polynomial in fitting.
-		deriv: int; order of derivative to compute.
-		rate: inherited parameter from savitzky_golay method.
-		Returns:
-		--------
-		sfftnmr0fill: smoothed FFT of zero-filled nmr FID.
-		Note:
-		-----
-		Check Functions.savitzky_golay for details.
-		'''
-		condition=(self._f0fill>=frange[0])&(self._f0fill<=frange[1])
-		conditionlow=(self._f0fill<frange[0])
-		conditionhigh=(self._f0fill>frange[1])
-		yr=self._fftnmr0fill.real[condition]
-		yi=self._fftnmr0fill.imag[condition]
-		smoothyr=func.savitzky_golay(yr,window_size,order,deriv=deriv,rate=rate)
-		smoothyi=func.savitzky_golay(yi,window_size,order,deriv=deriv,rate=rate)
-		smoothfftnmr0fillr=np.concatenate((self._fftnmr0fill.real[conditionlow], smoothyr, self._fftnmr0fill.real[conditionhigh]))
-		smoothfftnmr0filli=np.concatenate((self._fftnmr0fill.imag[conditionlow], smoothyi, self._fftnmr0fill.imag[conditionhigh]))
-		sfftnmr0fill=smoothfftnmr0fillr+1j*smoothfftnmr0filli
-		setattr(self,'_sfftnmr0fill',sfftnmr0fill)
-		return sfftnmr0fill
-#=======================================================================
 	def plot(self,pltmode,figsize=(15,5),wspace=0.4,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 		'''
 		2019-09-25 16:18
@@ -388,17 +354,17 @@ class nmr(object):
 			line=Plotting.nmr_all(axes,self,iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 			return fig,axes,line
 #=======================================================================
-	def fit(self,p0,window_size,order,sfrange=(-np.inf,np.inf),deriv=0,rate=1,bounds=(-np.inf,np.inf),pltflag=0,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=8):
+	def fit(self,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=8):
 		'''
-		Fit self._sfftnmr0fill to several peaks, each peak described by 4 parameters. Smoothing procedure is included in this process.
+		2019-09-25 17:34
+		Fit self._fftnmr0fill to several peaks, each peak described by 4 parameters.	
 		Syntax:
 		-------
-		popt,pcov,perr[,fig,axes,lines]=fit(p0,window_size,order[,sfrange=(-inf,inf),deriv=0,rate=1,bounds=(-inf,inf),pltflag=0,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=8])
+		popt,pcov,perr[,fig,axes,lines]=fit(p0[,bounds=(-inf,inf),pltflag=0,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=8])
 		Parameters:
 		-----------
 		p0: Initial fitting parameters, format is [s01,T1,f01,phase1,s02,T2,f02,phase2,...], length=4xN.
-		window_size,order,deriv,rate: func.savitzky_golay smooth method input parameters.
-		sfrange: Frequency range to perform smoothing, boundary included.
+		frange: (lb,ub); lower and upper bound of the frequency range for fitting.
 		bounds: Optimization parameter bounds for scipy.optimize.curve_fit.
 		pltflag: plot flag.
 		figsize,wspace,hspace: figure and subplots spacing settings.
@@ -418,9 +384,9 @@ class nmr(object):
 		fig/axes/lines: Only output when pltflag=1.
 		'''
 		if pltflag:
-			popt,pcov,perr,fig,axes,lines=func.nmr_1simfit(self,p0,window_size,order,sfrange=sfrange,deriv=deriv,rate=rate,bounds=bounds,pltflag=pltflag,figsize=figsize,wspace=wspace,hspace=hspace,marker=marker,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			popt,pcov,perr,fig,axes,lines=func.nmr_1simfit(self,p0,frange=frange,bounds=bounds,pltflag=pltflag,figsize=figsize,wspace=wspace,hspace=hspace,marker=marker,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		else:
-			popt,pcov,perr=func.nmr1simfit(self,p0,window_size,order,sfrange=sfrange,deriv=deriv,rate=rate,bounds=bounds,pltflag=pltflag)
+			popt,pcov,perr=func.nmr_1simfit(self,p0,frange=frange,bounds=bounds,pltflag=pltflag)
 
 		setattr(self,'popt',popt)
 
