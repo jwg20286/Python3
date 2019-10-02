@@ -225,11 +225,60 @@ def floridaP2T(P,Pn=34.3934):
 			T=scipy.optimize.brentq(f,0,0.9061261416052492) #solve: f=0
 		return T
 #-----------------------------------------------------------------------
+# if P is a scalar, simply do calculation
+	if not(isinstance(P,(list,tuple,np.ndarray))): #input is scalar
+		return floridaP2T_single(P,Pn) #return as [Tlow,Thigh]
+
+# if P is a sequence, do array calculation
 # wrap around floridaP2T_single to accomodate np.array input and output
 	P=np.array(P,dtype=float)
-
 	wrapFloridaP2T=np.vectorize(floridaP2T_single)
 	T=wrapFloridaP2T(P,Pn)
+	return T
+#=======================================================================
+def floridaPLTS2000P2T_single(P,Pn=34.3934):
+	'''
+        Calculate a single T from a single P assuming T<315.24mK, which is the PLTS2000 minimum.
+	Below 0.9mK, it follows florida scale.
+        Above 0.9mK, it follows PLTS2000 scale.
+	Syntax:
+        -------
+	T=floridaPLTS2000P2T_single(P[,Pn=34.3934])
+	Parameters:
+	-----------
+	P: float; Pressure in bar.
+        Pn: float; Neel transition pressure.
+        Returns:
+        --------
+	T: float; Temperature in mK.
+        '''
+	P09=floridaT2P(0.9,Pn=Pn)
+	if P>P09:
+	        T=floridaP2T(P,Pn=Pn)
+	elif P==P09:
+	        T=0.9
+	else:
+		T=PLTS2000P2T(P,Pn=Pn)[0]
+	return T
+#=======================================================================
+def floridaPLTS2000P2T(P,Pn=34.3934):
+	'''
+	Calculate a sequence of T from a sequence of P assuming T<315.24mK, which is the PLTS2000 minimum.
+        Below 0.9mK, it follows florida scale.
+	Above 0.9mK, it follows PLTS2000 scale.
+        Syntax:
+        -------
+	T=floridaPLTS2000P2T_single(P[,Pn=34.3934])
+        Parameters:
+	-----------
+        P: Pressure in bar.
+	Pn: Neel transition pressure.
+        Returns:
+	--------
+        T: Temperature in mK.
+	'''
+	wrapFloridaPLTS2000P2T=np.vectorize(floridaPLTS2000P2T_single)
+	T=wrapFloridaPLTS2000P2T(P,Pn=Pn)
 	return T
 #=======================================================================
 def he3P2Nu(P,deg=5):
