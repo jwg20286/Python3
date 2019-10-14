@@ -1002,19 +1002,20 @@ def nmr_all(axes,swpdata,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=
 	line2=nmr_single(axes[2],swpdata,'fi',iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=0)
 	return np.array(line0+line1+line2)
 #=======================================================================
-def nmrs_all(*filenums,pltmode='all',dt=2e-7,zerofillnum=0,logname=None,figsize=(15,5),wspace=0.9,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+def nmrs_all(device,*filenums,pltmode='all',zerofillnum=0,logpath=None,dtLabel='dt_s',dt=2e-7,figsize=(15,5),wspace=0.9,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 	'''
-	2019-09-25 15:46
+	2019-10-14 14:15
 	Plots multiple nmr signal in the same figure.
 	Syntax:
 	-------
-	fig,axes,lines=nmrs_all(file#1,...,file#N,[,pltmode='all',tstep=2e-7,zerofillnum=0,figsize=(15,5),wspace=0.9,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
-	fig,axes,lines=axes,sweepsAll(device,file#1,...,file#N,[,pltmode='all',tstep=2e-7,zerofillnum=0,figsize=(15,5),wspace=0.9,hspace=0.3,markersize=4,linewidth=1,iter=0,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	fig,axes,lines=nmrs_all(device,file#1,...,file#N,[,pltmode='all',zerofillnum=0,logpath=None,dtLabel='dt_s',dt=2e-7,figsize=(15,5),wspace=0.9,hspace=0.3,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
 	Parameters
-	---------- file#N: file numbers.
+	---------- 
+	device: str, path+device name string.
+	file#N: file numbers.
 	pltmode: plot mode, supports 'all' and 't/d/f/r/i/m/p'.
-	tstep,zerofillnum: nmr file reading parameters.
-	logname: nmr log path.
+	dtLabel,dt,zerofillnum: nmr file reading parameters.
+	logpath: str, nmr log path.
 	figsize,wspace,hspace,iter,fillstyle,markeredgewidth,markersize,linewidth: fig and axes settings.
 	legloc: legend location.
 	bbox_to_anchor: legend anchor point.
@@ -1035,11 +1036,11 @@ def nmrs_all(*filenums,pltmode='all',dt=2e-7,zerofillnum=0,logname=None,figsize=
 	
 	lines=[]
 	for filenum in filenums:
-		swpdata=nmr(utl.mkFilename('NMR',filenum),tstep=tstep,zerofillnum=zerofillnum,logname=logname)
+		swpdata=nmr(utl.mkFilename(device,filenum),zerofillnum=zerofillnum,logpath=logpath,dtLabel=dtLabel,dt=dt)
 		if 'all' in pltmode:
-			line=nmrAll(axes,swpdata,iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			line=nmr_all(axes,swpdata,iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		else:
-			line=nmrSingle(axes,swpdata,pltmode,iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			line=nmr_single(axes,swpdata,pltmode,iter=iter,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		lines.append(line)
 		iter+=1
 	
