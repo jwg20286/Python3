@@ -402,6 +402,7 @@ def fswpFitLoad(filename,filepopt,header):
 #=======================================================================
 def nmrFitLoad(filenmr,filepopt):
 	'''
+	2019-10-18 15:18
 	Fetch optimized parameter for one nmr file from fitting results saved in another file.
 	Syntax:
 	-------
@@ -416,7 +417,7 @@ def nmrFitLoad(filenmr,filepopt):
 	zerofillnum: number of zerofilling points used to do this fit.
 	'''
 	df=pd.read_csv(filepopt,delim_whitespace=True)
-	r=df[df['NMRFilename']==filenmr]
+	r=df[df['Filename']==filenmr]
 	truncated=[elem[:-1:] for elem in r.columns] #rid last header symbol
 	compare=[(elem=='s0')or(elem=='T')or(elem=='f0')or(elem=='phase') for elem in truncated]
 	popt=r[r.columns[compare]].values[0]
@@ -424,7 +425,7 @@ def nmrFitLoad(filenmr,filepopt):
 	compareperr=[('perr' in elem) for elem in r.columns]
 	perr=r[r.columns[compareperr]].values[0]
 	
-	zerofillnum=r['zerofillnum'].values[0]
+	zerofillnum=r['_zerofillnum'].values[0]
 	return popt,perr,zerofillnum
 #=======================================================================
 def prepare_bounds(bounds,n):

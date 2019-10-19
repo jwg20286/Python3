@@ -343,7 +343,7 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 			result.to_csv(savename,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save
 	return result
 #=======================================================================
-def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),logpath=None,dtLabel='dt_s',savename=None):
+def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),logpath=None,header_metadata=['Filename','_epoch','_zerofillnum','Cmct_pF'],dtLabel='dt_s',savename=None):
 	'''
 	Do nmr_1simfit consecutively. Each fit's optimized parameters, popt, will be transferred to the next file as an input to start fitting with.
 	Syntax:
@@ -359,6 +359,7 @@ def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,n
 	frange: (lb,ub); Frequency range lower/upper bounds for FFT FID within which smoothing is done.
 	bounds: scipy.optimize.curve_fit parameter boundaries input.
 	logpath: str; NMR log file path.
+	header_metadata: list of str, metadata of fitted files read from log.
 	dtLabel: str; the attribute that should contain the time step info.
 	savename: If exists, the output result will be saved to this file.
 	Returns:
@@ -380,7 +381,7 @@ def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,n
 	length=len(piece.index)
 	index=np.linspace(0,length-1,length,dtype=int) #create index
 	header=utl.mknmrp0Header(len(p0))
-	header0=['Filename','Epoch','zerofillnum']
+	header0=header_metadata
 	headerperr=[elem+'perr' for elem in header]
 	Header=header0+header+headerperr
 	result=pd.DataFrame(index=index,columns=Header) #empty dataframe
@@ -394,9 +395,11 @@ def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,n
 
 		condition=[(cn not in header0) for cn in result.columns]
 		result.loc[ind][condition]=np.append(popt,perr) # assign fitted values
-		result.loc[ind]['Filename']=data._filename # nmr filename
-		result.loc[ind]['Epoch']=data._epoch # nmr epoch second
-		result.loc[ind]['zerofillnum']=zerofillnum # zerofillnum
+		for h in header_metadata:
+			result.loc[ind][h]=getattr(data,h.lower()) # get metadata
+		#result.loc[ind]['Filename']=data._filename # nmr filename
+		#result.loc[ind]['Epoch']=data._epoch # nmr epoch second
+		#result.loc[ind]['zerofillnum']=zerofillnum # zerofillnum
 		ind+=1
 		print('-%s-%.2f%%-'%(re.sub(r'[^0-9]','',filename)[0::],ind/length*100),end='') #update progress
 	print('-Finished',end='')

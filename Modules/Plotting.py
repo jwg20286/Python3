@@ -1095,9 +1095,9 @@ def fitCheck_nmr(axes,data,popt,marker='.',markersize=1,linewidth=1,bbox_to_anch
 	axes[2].ticklabel_format(axis='x',style='sci',scilimits=(0,0))
 	return np.array([line00+line01,line10+line11,line20+line21])
 #=======================================================================
-def fitCheck_nmr_file(filenmr,filepopt,tstep=2e-7,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,bbox_to_anchor=(0,1),legloc='lower left',legsize=8):
+def fitCheck_nmr_file(filenmr,filepopt,dt=2e-7,dtLabel='dt_s',logpath=None,figsize=(16,5),wspace=0.4,hspace=0.2,marker='.',markersize=1,linewidth=1,bbox_to_anchor=(0,1),legloc='lower left',legsize=8):
 	'''
-	2019-09-25 15:51
+	2019-10-18 15:18
 	Check NMR fit by reading fitted parameters from saved file.
 	Syntax:
 	-------
@@ -1118,8 +1118,9 @@ def fitCheck_nmr_file(filenmr,filepopt,tstep=2e-7,figsize=(16,5),wspace=0.4,hspa
 	'''
 	from nmr import nmr
 
-	popt,_,zerofillnum=utl.nmrFitLoad(filenmr,filepopt)
-	data=nmr(filenmr,tstep=tstep,zerofillnum=zerofillnum)
+	basename=ntpath.basename(filenmr) #utl.nmrFitLoad only takes basename b/c that's what's usually stored in the log files
+	popt,_,zerofillnum=utl.nmrFitLoad(basename,filepopt) # find popt
+	data=nmr(filenmr,logpath=logpath,dt=dt,dtLabel=dtLabel,zerofillnum=zerofillnum)
 	
 	fig,axes=plt.subplots(1,3,figsize=figsize)
 	fig.subplots_adjust(wspace=wspace,hspace=hspace)
