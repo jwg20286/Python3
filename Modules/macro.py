@@ -414,6 +414,7 @@ def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,n
 #=======================================================================
 def tfBackground(paths,logs,mainChannels,bounds,polyDeg=9,pltflag=False,figsize=(12,5),wspace=0.3,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
 	'''
+	2019-11-21 18:21
 	Calculate tuning fork background. The background is normalized to excitation=1Vpp, and the signals are rotated so that the oscillators and the reference are in-phase (phase=0 deg). The program will load every file as identified in paths, read each one's f/x/y, then scale+rotate+combine all the f/x/y to become a long f/x/y, and then fit this data using a polynomial.
 	Syntax:
 	-------
