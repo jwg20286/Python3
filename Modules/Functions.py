@@ -10,6 +10,7 @@ from scipy import fftpack
 import FuncLib
 import Plotting
 import Utility as utl
+import readLog
 #=======================================================================
 def paramsize(function):
 	'''

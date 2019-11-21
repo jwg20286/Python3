@@ -103,6 +103,7 @@ class nmrLog(object):
 #=======================================================================
 class freqSweepLog(object):
 	'''
+	DEPRECATED
 	FreqSweep Log class.
 	Syntax:
 	-------

@@ -8,6 +8,7 @@ import re
 import os
 import time
 import ntpath
+import matplotlib.pyplot as plt
 
 import readLog
 import Functions as func
@@ -410,5 +411,89 @@ def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,n
 		else : #file doesn't exist
 			result.to_csv(savename,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save
 	return result
+#=======================================================================
+def tfBackground(paths,logs,mainChannels,bounds,polyDeg=9,pltflag=False,figsize=(12,5),wspace=0.3,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+	'''
+	Calculate tuning fork background. The background is normalized to excitation=1Vpp, and the signals are rotated so that the oscillators and the reference are in-phase (phase=0 deg). The program will load every file as identified in paths, read each one's f/x/y, then scale+rotate+combine all the f/x/y to become a long f/x/y, and then fit this data using a polynomial.
+	Syntax:
+	-------
+	px,py[,fig,axes,lines]=tfBackground(paths,logs,mainChannels,bounds[,polyDeg=9,pltflag=False,figsize=(12,5),wspace=0.3,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+
+	Parameters:
+	-----------
+	paths: list, a list of all files that are going to be used to fit the background, [path0,path1,...]
+	logs: list, a list of the log files corresponding to every file in the paths list, [log0,log1,...]
+	mainChannels: list, a list of mainChannel strings corresponding to every file in the paths list, [mainChannel0,mainChannel1,...]
+	bounds: list, a list of bounds corresponding to every file in the paths list, [bounds0,bounds1,...]. Each bounds#=(lb,ub) is a range of f/x/y that will be included from that file to be part of the macro fitting. e.g. bounds1=([1100,13950,34550],[8950,29550,np.inf]) means that for the file identified by path1, the frequency range [1100,8950]U[13950,29550]U[34550,inf] will be selected, as well as its associated x and y, which will later be combined with the data from the other path# files to become the data for fitting.
+	polyDeg: int, the degree of the polynomial fit.
+	pltflag: boolean, whether to plot the fitting results.
+	figsize,wspace,hspace,fillstyle,iter_color,iter_marker,iter_linestyle,markeredgewidth,markersize,linewidth,legloc,bbox_to_anchor,legsize: plot parameters.
+	Returns:
+	--------
+	px: numpy.array, fitted polynomial parameters for the x-channels.
+	py: numpy.array, fitted polynomial parameters for the y-channels.
+	fig,axes,lines: plot handles.
+	'''
+	f=np.array([])
+	x=np.array([])
+	y=np.array([])
+	for path,log,mc,b in zip(paths,logs,mainChannels,bounds):
+		data=fswp(path,logname=log,mainChannel=mc,normByParam='voltagevpp'+mc)
+		_,od=utl.build_condition_series(b,data.f)
+		phase=getattr(data,'phase'+mc)/180*np.pi
+    
+		f0=data.f[od]
+		x0=data.nx[od]*np.cos(phase)-data.ny[od]*np.sin(phase) # all measurements are normalized to 1Vpp excitation, rotated to 0deg.
+		y0=data.nx[od]*np.sin(phase)+data.ny[od]*np.cos(phase) 
+    
+		f=np.concatenate( (f,f0),axis=0 )
+		x=np.concatenate( (x,x0),axis=0 )
+		y=np.concatenate( (y,y0),axis=0 )
+
+	px=np.polyfit(f,x,polyDeg)
+	py=np.polyfit(f,y,polyDeg)
+
+	iter_color=iter_color
+	iter_marker=iter_marker
+	iter_linestyle=iter_linestyle
+	lines=[]
+	if pltflag:
+		fig,axes=plt.subplots(1,2,figsize=figsize)
+		[ax1,ax2]=axes
+		fig.subplots_adjust(wspace=wspace,hspace=hspace)
+		for path,log,mc,b in zip(paths,logs,mainChannels,bounds):
+			data=fswp(path,logname=log,mainChannel=mc,normByParam='voltagevpp'+mc)
+			phase=getattr(data,'phase'+mc)/180*np.pi
+			V=getattr(data,'voltagevpp'+mc)
+			bx0=np.polyval(px,data.f)
+			by0=np.polyval(py,data.f)
+			bx=(bx0*np.cos(phase)+by0*np.sin(phase))*V
+			by=(-bx0*np.sin(phase)+by0*np.cos(phase))*V
+        
+			linex1=ax1.plot(data.f,data.x,color=utl.colorCode(iter_color%utl.lencc()),marker=utl.markerCode(iter_marker%23),fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linestyle='',label=data._filename)
+			linex2=ax2.plot(data.f,data.y,color=utl.colorCode(iter_color%utl.lencc()),marker=utl.markerCode(iter_marker%23),fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linestyle='',label=data._filename)
+			liney1=ax1.plot(data.f,bx,color=utl.colorCode(iter_color%utl.lencc()),fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=0,linestyle=utl.linestyleCode(iter_linestyle%4),linewidth=linewidth,label=data._filename)
+			liney2=ax2.plot(data.f,by,color=utl.colorCode(iter_color%utl.lencc()),fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=0,linestyle=utl.linestyleCode(iter_linestyle%4),linewidth=linewidth,label=data._filename)
+        
+			ax1.set_xlabel('f (Hz)')
+			ax1.set_ylabel('x (Vrms)')
+			ax2.set_xlabel('f (Hz)')
+			ax2.set_ylabel('y (Vrms)')
+			ax2.legend(loc=legloc,bbox_to_anchor=bbox_to_anchor,prop={'size':legsize})
+        
+			iter_color+=1
+			iter_marker+=1
+			iter_linestyle+=1
+        
+			linex1.append(*linex2)
+			linex1.append(*liney1)
+			linex1.append(*liney2)
+			lines.append(linex1)
+        
+		plt.show()
+	if pltflag:
+		return px,py,fig,axes,lines
+	else:
+		return px,py
 #=======================================================================
 
