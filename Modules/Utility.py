@@ -200,6 +200,30 @@ def gainCorrect_50mVrms(f,rawdata):
 	newdata=0.04*rawdata/gainVsF1(f)
 	return newdata
 #=======================================================================
+def gainCorrect_500mVrms(f,rawdata):
+	'''
+	2017-07-13 13:30
+	Use the frequency-dependent Gain of demodulation(SR7124, see Utility.gainVsF1) to correct and convert the measurements of the following lock-in.
+	Sensitivity=500mVrms
+	1/0.4=2.5/(2*0.5)
+
+	Syntax:
+	-------
+	newdata=gainCorrect_50mVrms(f,rawdata)
+	Parameters:
+	-----------
+	f: frequency in Hz, will be converted to numpy.ndarray of dtype=float.
+	rawdata: rawdata points array with the same length as f.
+	Returns:
+	--------
+	newdata: rolloff gain corrected data.
+
+	'''
+	f=np.array(f,dtype=float)
+	rawdata=np.array(rawdata,dtype=float)
+	newdata=0.4*rawdata/gainVsF1(f)
+	return newdata
+#=======================================================================
 def gainVsF1(f):
 	'''
 	The frequency dependent demodulation gain of SR7124.
