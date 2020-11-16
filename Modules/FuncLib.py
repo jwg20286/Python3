@@ -52,6 +52,40 @@ def lrtzRR(f,A,d,f0):
 	rr=(A/4/pi**2)**2/((d*f)**2+(f0**2-f**2)**2)
 	return rr
 #=======================================================================
+def lrtzvX(f,A,d,f0):
+	f=np.array(f,float)
+	A=float(A)
+	d=float(d)
+	f0=float(f0)
+	x=A*d*f**2/2/pi/((d*f)**2+(f0**2-f**2)**2)
+	return x
+#=======================================================================
+def lrtzvY(f,A,d,f0):
+	f=np.array(f,float)
+	A=float(A)
+	d=float(d)
+	f0=float(f0)
+	y=A*(f0**2*f-f**3)/2/pi/((d*f)**2+(f0**2-f**2)**2)
+	return y
+#=======================================================================
+def lrtzvXph(f,A,d,f0,phase):
+	f=np.array(f,float)
+	A=float(A)
+	d=float(d)
+	f0=float(f0)
+	phase=float(phase)
+	x=lrtzvX(f,A,d,f0)*cos(radians(phase))-lrtzvY(f,A,d,f0)*sin(radians(phase))
+	return x
+#=======================================================================
+def lrtzvYph(f,A,d,f0,phase):
+	f=np.array(f,float)
+	A=float(A)
+	d=float(d)
+	f0=float(f0)
+	phase=float(phase)
+	y=lrtzvX(f,A,d,f0)*sin(radians(phase))+lrtzvY(f,A,d,f0)*cos(radians(phase))
+	return y
+#=======================================================================
 def bgCon(f,a0):
 	a0=float(a0)
 	return a0
