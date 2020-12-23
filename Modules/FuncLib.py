@@ -340,10 +340,71 @@ def he3P2Nu(P,deg=5):
 	28.888, 28.638, 28.398, 28.168, 27.949,\
 	27.739, 27.541, 27.354, 27.177, 27.012,\
 	26.857, 26.711, 26.572, 26.438, 26.306,\
-	26.170, 26.025, 25.864, 25.677, 25.456]#cite Halperin1990
+	26.170, 26.025, 25.864, 25.677, 25.456]#cite Halperin1990,P510
 	popt=np.polyfit(x,y,deg)[::-1] #poly fit, lower order terms in front
 	Nu=np.polynomial.polynomial.polyval(P,popt) #molar volume(cm^3/mol)
 	return Nu, popt
+#=======================================================================
+def he3P2Tc(P,deg=5):
+	'''
+	Calculate superfluid transition temperature(mK) from given pressure(bar).
+	Syntax:
+	-------
+	Tc,popt=he3P2Tc(P[,deg=5])
+	Parameters:
+	-----------
+	P: Pressure in bar.
+	deg: np.polyfit degree, polynomial order to fit the Halperin data.
+	Returns:
+	--------
+	Tc: superfluid transition temperature in mK.
+	popt: Fitted polynomial parameters, lower order terms in front.
+	Notes:
+	------
+	deg=5 because test fits show this to be sufficient. deg<5 will cause inaccuracy. deg>5 can be done, but may be unnecessary.
+	'''
+	p=np.linspace(0,34,35)
+	tc=[0.929, 1.061, 1.181, 1.290, 1.388,\
+	1.478, 1.560, 1.636, 1.705, 1.769,\
+	1.828, 1.883, 1.934, 1.981, 2.026,\
+	2.067, 2.106, 2.143, 2.177, 2.209,\
+        2.239, 2.267, 2.293, 2.317, 2.339,\
+        2.360, 2.378, 2.395, 2.411, 2.425,\
+        2.438, 2.451, 2.463, 2.474, 2.486] # Halperin P510
+	popt=np.polyfit(p,tc,deg)[::-1]
+	Tc=np.polynomial.polynomial.polyval(P,popt)
+	return Tc, popt
+#=======================================================================
+def he3P2Tab(P,deg=5):
+	'''
+	Calculate A-B transition temperature(mK) from given pressure(bar).
+	Syntax:
+	-------
+	Tab,popt=he3P2Tab(P[,deg=5])
+	Parameters:
+	-----------
+	P: Pressure in bar.
+	deg: np.polyfit degree, polynomial order to fit the Vollhardt data.
+	Returns:
+	--------
+	Tab: superfluid transition temperature in mK. For pressures outside the 21.22-34.538bar range, Tab returns 0.
+	popt: Fitted polynomial parameters, lower order terms in front.
+	Notes:
+	------
+	deg=5 because test fits show this to be sufficient. deg<5 will cause inaccuracy. deg>5 can be done, but may be unnecessary.
+	'''
+	p=np.concatenate(([21.22],np.linspace(22,34,13),[34.338,34.358]))
+	tab=[2.273, 2.262, 2.242, 2.217, 2.191,\
+	2.164, 2.137, 2.111, 2.083, 2.056,\
+	2.027, 1.998, 1.969, 1.941, 1.933,\
+	1.932] # vollhardt P97
+	popt=np.polyfit(p,tab,deg)[::-1]
+
+	P=np.asarray(P)
+	P=np.where(P<21.22,np.nan,P) # no a-b transition below 21.22bar
+	P=np.where(P>34.358,np.nan,P) # solid above 34.358bar
+	Tab=np.polynomial.polynomial.polyval(P,popt)
+	return Tab, popt
 #=======================================================================
 def domainfft(t):
 	'''
