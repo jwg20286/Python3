@@ -560,3 +560,24 @@ def FID0ffts(f,*p,zerofillnum=0):
 		wave0fillfft+=FID0fft(f,*p[i*4:i*4+4:],zerofillnum=zerofillnum)
 	return wave0fillfft
 #=======================================================================
+def CurieWeiss(T,M0,a,T0):
+	'''
+	Curie-Weiss law to calculate the magnetization.
+	Syntax:
+	-------
+	M=CurieWeiss(T,M0,a,T0)
+	Parameters:
+	-----------
+	T: temperature.
+	M0: magnetization generated from other parts of the experimental setup besides the thermometric sample.
+	a: a term proportional to the molar nuclear Curie constant.
+	T0: the combined effect of two effect: 1st, the demagnetization of the paramagnet in the B-field; 2nd, the Weiss field from neighbouring partially aligned dipoles.
+	Returns:
+	--------
+	M: measured magnetization.
+	'''
+	T=np.array(T,float)
+	M0,a,T0=float(M0),float(a),float(T0)
+	M=M0+a/(T-T0)
+	return M
+#=======================================================================

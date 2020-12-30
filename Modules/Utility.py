@@ -319,10 +319,12 @@ def markerCode(iter):
 #=======================================================================
 def mkAxLabel(labelstr):
 	'''
+	2020-12-30, 15:49
 	make labels for axis titles
 	translate labelstr and return output to axlabel
 	this function will translate:
 		'f/F'=>'Frequency (Hz)'
+		'v/V'=>'Voltage (Vpp)'
 		'x/y/r/X/Y/R'=>'X/Y/R-channel (Vpp)'
 	Syntax:
 	-------
@@ -336,8 +338,10 @@ def mkAxLabel(labelstr):
 	'''
 	if labelstr in 'fF': #label for 'f'
 		axlabel='Frequency (Hz)'
+	elif labelstr in 'vV': # label for 'v'
+		axlabel='Voltage (Vpp)'
 	elif labelstr in 'xyrXYR': #label for 'x/y/r'
-		axlabel=labelstr.upper()+'-channel (Vpp)'
+		axlabel=labelstr.upper()+'-channel (Vrms)'
 	else:
 		raise TypeError('Unrecognizable input string')
 	return axlabel

@@ -758,6 +758,113 @@ def freqSweeps_multiple_1device(device,*filenums,fold=dict(),logname=None,mainCh
 	fig,axes,lines=freqSweeps_multiple(filename_dict,logname=logname,correctFunc=correctFunc,normByParam=normByParam,pltmode=pltmode,subplots_layout=subplots_layout,figsize=figsize,wspace=wspace,hspace=hspace,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 	return fig,axes,lines
 #=======================================================================
+def vSweep_single(axis,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	2020-12-30 15:11
+	Single sweep plot function designed for sweep.py->freqSweep.
+	Plot sweep data based on input plot mode on given axis.
+	This function does not create its own figure window.
+	Syntax:
+	-------
+	line=freqSweep_single(axis,swpdata,pltmode[,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	axis: the axis to plot into.
+	swpdata: sweep.freqSweep class, has .v/.x/.y/.r attributes.
+	pltmode: examples: 'vX'=>v vs x, 'xy'=>x vs y, 'rvg'=>gr vs f, 'ygy'=>gy vs gy; only v,x,y,r are acceptable axes, will plot gain corrected by adding 'g' anywhere into pltmode; pltmode is case insensitive.
+	iter_color/marker/linestyle,fillstyle,markeredgewidth,markersize,linewidth: axis settings.
+	legflag: show legend if true.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point, (0,0) is lower left of plot axis.
+	legsize: legend font size.
+	Returns:
+	-------
+	line: the plotted line's handle.
+	'''
+	def addg(str,g): #add string to 'x/y/r', will not change 'f'
+		str=str.replace('x',g+'x')
+		str=str.replace('y',g+'y')
+		str=str.replace('r',g+'r')
+		return str
+
+	pltmode=pltmode.lower() #make input case insensitive
+	gflag=0
+	if 'g' in pltmode: #determine if gain correct plot is required
+		gflag=1
+	pltmode=pltmode.replace('g','')
+	xis=pltmode[0]
+	yis=pltmode[1]
+	g='g'*gflag
+	xis=addg(xis,g) # found what to use as x
+	yis=addg(yis,g) # found what to use as y
+
+	line=axis.plot(getattr(swpdata,xis).values,getattr(swpdata,yis).values,color=utl.colorCode(iter_color%utl.lencc()),marker=utl.markerCode(iter_marker%23),fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linestyle=utl.linestyleCode(iter_linestyle%4),linewidth=linewidth,label=swpdata._filename.split('.')[0]) #plot,rotates color,marker,linestyle
+	axis.set_xlabel(utl.mkAxLabel(pltmode[0])) #label axes
+	axis.set_ylabel(utl.mkAxLabel(pltmode[1]))
+	if legflag: # determine if show legend.
+		axis.legend(bbox_to_anchor=bbox_to_anchor,loc=legloc,prop={'size':legsize}) #legend format: 'device_filenum'
+	axis.grid()
+	return line
+#=======================================================================
+def vSweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	2020-12-30 15:37
+	Plot one or more plots of one single sweep.freqSweep in one figure.
+	Syntax:
+	-------
+	lines=vSweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10)
+	Parameters:
+	-----------
+	axis: single matplotlib.axes._subplots.AxesSubplot or list or numpy.ndarray, allowed inputs are one axis, or a list/matrix of axes.
+	pltmode: str or list_of_str, plot modes.
+	iter_color/marker/linestyle,fillstyle,markeredgewidth,markersize,linewidth: axis settings.
+	legflag: boolean, show legend if True.
+	legloc: str, legend location.
+	bbox_to_anchor: legend anchor point, (0,0) is lower left of plot axis.
+	legsize: legend font size.
+	Returns:
+	--------
+	line: list, list of the plotted lines' handles.
+	'''
+	lines=freqSweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10) # freqSweep_multiple can directly be used for excitation sweep plottings. vSweep_multiple is only created for readability.
+		
+	return lines
+#=======================================================================
+def vSweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	2020-12-30 15:37
+	Plot sweep data in a 'vx'+'vy'+'vr'+'xy' fashion.
+	This function does not create its own figure window.
+	Syntax:
+	-------
+	line=vSweep_all(axes,swpdata,pltmode[,iter_color=0,iter_marker=0,iter_linestyle=0,fillstyle='full',markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	axes: 2-by-2 axes matrix, dimensions beyond 0 and 1 will be ignored.
+	swpdata: sweep.sweepSingle class, has .v/.x/.y/.r/.gx/.gy/.gr attributes.
+	pltmode: plot mode, supports 'x/y/r/all' and 'g'.
+	iter_color/marker/linestyle,fillstyle,markeredgewidth,markersize,linewidth: axis settings.
+	legflag: show legend if True.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns:
+	--------
+	line: tuple with all 4 lines' handles
+	'''
+	gflag=0
+	if 'g' in pltmode:
+		gflag=1
+	
+	g='g'*gflag
+	mode0=g+'vx'
+	mode1=g+'vy'
+	mode2=g+'vr'
+	mode3=g+'xy'
+
+	lines=vSweep_multiple(axes,swpdata,[mode0,mode1,mode2,mode3],fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+	return lines
+#=======================================================================
 def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=(-np.inf,np.inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
 	2017-06-22 11:38
