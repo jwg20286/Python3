@@ -826,7 +826,7 @@ def vSweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_mar
 	--------
 	line: list, list of the plotted lines' handles.
 	'''
-	lines=freqSweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10) # freqSweep_multiple can directly be used for excitation sweep plottings. vSweep_multiple is only created for readability.
+	lines=freqSweep_multiple(axis,swpdata,pltmodes,fillstyle='full',iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize) # freqSweep_multiple can directly be used for excitation sweep plottings. vSweep_multiple is only created for readability.
 		
 	return lines
 #=======================================================================
@@ -864,6 +864,109 @@ def vSweep_all(axes,swpdata,pltmode,fillstyle='full',iter_color=0,iter_marker=0,
 
 	lines=vSweep_multiple(axes,swpdata,[mode0,mode1,mode2,mode3],fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 	return lines
+#=======================================================================
+def vSweeps_multiple(filename_dict,logname=None,correctFunc=utl.gainCorrect,corrByParam='f',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+	'''
+	2021-01-11 15:00
+	Plots multiple vSweep curves in the same figure. When reading the data, this function uses the default correctFunc in sweep.vSweep class object.
+	Syntax:
+	-------
+	fig,axes,lines=vSweeps_multiple(filename_dict[,logname=log_file_path,correctFunc=utl.gainCorrect,corrByParam='f',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	Parameters
+	----------
+	filename_dict: collections.OrderedDict, filename_dict=collections.OrderedDict([(key1,setting1),(key2,setting2),(key3,setting3),...]), key(s) are file path(s), setting(s) are setting(s) parsed to sweep.vSweep. Each setting is a dictionary that can include key:value pairs for fold, mainChannel. Any missing setting will be set to its default value. For example, filename_dict=collections.OrderedDict( [('mems_000.dat',{'fold':{'x':-1}, 'mainChannel':'0'}), ('mems_001.dat', {'mainChannel':'1'}), ('mems_002.dat', {'fold':{'y':2}})] ) will parse the given settings when loading 'mems_###.dat' where 'mems_001.dat' will see fold={}, and 'mems_002.dat' will see mainChannel=''.
+	logname: str, sweeps log path.
+	correctFunc: frequency roll-off correcting function.
+	corrByParam: str, when 'gx/y/r' are called, they will be roll-off corrected by using this named attribute of the instance as the frequency.
+	pltmode: plot mode, supports extra 'g'.
+	subplots_layout: 1x2 tuple, matplotlib.subplots row & column numbers.
+	figsize,wspace,hspace,iter,fillstyle,markeredgewidth,markersize,linewidth: fig and axes settings.
+	legflag: boolean, show legend if True.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns
+	-------
+	fig,axes,lines: handles, each element of the 'lines' tuple is a tuple of four 'line's from vx/vy/vr/xy plots.
+	'''
+	from sweep import vSweep as vswp
+
+	if subplots_layout is not None:
+		fig,axes=plt.subplots(subplots_layout[0],subplots_layout[1],figsize=figsize)
+	elif 'all' not in pltmode:
+		if not isinstance(pltmode,list or tuple):
+			pltmode=[pltmode]
+		fig,axes=plt.subplots(1,len(pltmode),figsize=figsize)
+	else:
+		fig,axes=plt.subplots(2,2,figsize=figsize)
+
+	fig.subplots_adjust(wspace=wspace,hspace=hspace)
+
+	lines=[]
+
+	for namekey in filename_dict.keys(): #loop through filenames & settings
+		if 'fold' not in filename_dict[namekey]:
+		    filename_dict[namekey].update({ 'fold':{} }) #default fold if fold is not given
+		if 'mainChannel' not in filename_dict[namekey]:
+		    filename_dict[namekey].update({ 'mainChannel':''}) #default mainChannel if mainChannel is not given
+		swpdata=vswp(namekey,fold=filename_dict[namekey]['fold'],mainChannel=filename_dict[namekey]['mainChannel'],correctFunc=correctFunc,logname=logname,corrByParam=corrByParam)
+		if 'all' in pltmode:
+			line=vSweep_all(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		else:
+			line=vSweep_multiple(axes,swpdata,pltmode,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		lines.append(line)
+		iter_color+=1
+		iter_marker+=1
+		iter_linestyle+=1
+	return fig,axes,lines
+#=======================================================================
+def vSweeps_multiple_1device(device,*filenums,fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,corrByParam='f',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10):
+	'''
+	2021-01-11 16:05
+	Plots multiple curves in the same figure. These curves are named by the same device label. When reading the data, this function uses the default correctFunc in sweep.vSweep class object.
+	Syntax:
+	-------
+	fig,axes,lines=freqSweeps_multiple(device,file#1,...,file#N,[,fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,corrByParam='f',pltmode='all',subplots_layout=None,figsize=(15,9),wspace=0.7,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0,markersize=4,linewidth=1,legflag=True,legloc='upper left',bbox_to_anchor=(1,1),legsize=10])
+	Parameters
+	----------
+	device: str, device code string, e.g. 'H2MD3-1C'.
+	file#N: file numbers.
+	fold: dict, key(s) are the same ones that are accepted by sweep.freqSweep class; value(s) are tuple(s) with same length as number of file# len(filenums), each element of this tuple belongs to the fold of the corresponding file#. e.g. freqSweeps_multiple_1device('mems',0,1,{'v':(0.5,0.5),'x':(2,6)}) means that file 'mems_000.dat' will be loaded by its 'v' devided by 0.5, 'x' devided by 2, and 'mems_001.dat' will be loaded by its 'v' devided by 0.5, 'x' devided by 6.
+	logname: str, sweeps log file path.
+	mainChannel: str or list of str, used when there is no 'f/x/y/r' in the data, and the columns labeled as 'fstr/xstr/ystr/rstr' are to be treated as 'f/x/y/r', mainChannel="the string 'str' that will be appended to 'f/x/y/r' ".
+	correctFunc: frequency roll-off correcting function.
+	corrByParam: str, when 'gx/y/r' are called, they will be roll-off corrected by this named attribute of the instance.
+	pltmode: plot mode, supports extra 'g'.
+	subplots_layout: 1x2 tuple, matplotlib.subplots row & column numbers.
+	figsize,wspace,hspace,iter,fillstyle,markeredgewidth,markersize,linewidth: fig and axes settings.
+	legflag: boolean, show legend if True.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns
+	-------
+	fig,axes,lines: handles, each element of the 'lines' tuple is a tuple of four 'line's from vx/vy/vr/xy plots.
+	'''
+	from sweep import vSweep as vswp
+
+	filenames=tuple(map(lambda filenum: utl.mkFilename(device,filenum), filenums))
+
+	# make mainChannel a list if it's just a string
+	if isinstance(mainChannel,str):
+	    mainChannel=[mainChannel,]*len(filenames)
+	#construct filename_dict for freqSweeps_multiple
+	filename_dict=[]
+	for i in range(0,len(filenames)):
+	    #build fold
+	    kf=dict()
+	    for key in fold.keys():
+		    kf.update({key:fold[key][i]}) # pick the i'th element from the tuple 'key'
+
+	    filename_dict+=[(filenames[i],{'fold':kf,'mainChannel':mainChannel[i]})] #pair i'th filename with its fold
+	filename_dict=OrderedDict(filename_dict)
+
+	fig,axes,lines=vSweeps_multiple(filename_dict,logname=logname,correctFunc=correctFunc,corrByParam=corrByParam,pltmode=pltmode,subplots_layout=subplots_layout,figsize=figsize,wspace=wspace,hspace=hspace,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+	return fig,axes,lines
 #=======================================================================
 def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=(-np.inf,np.inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
