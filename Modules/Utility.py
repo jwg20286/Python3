@@ -566,9 +566,13 @@ def range_condition_series(lb,ub,x):
 	AndCond=True
 	OrCond=False
 	for l,u in zip(lb,ub):
-		condition1=x.between(l,u) # includes boundary points
-		condition2=x.between(u,l) # allow to recognize reversed bounds
-		condition=condition1 | condition2
+		if (type(l)!=str)&(type(l)!=np.str_): # if bounds are not str, do not expect exact matches of l,u to exist in x
+			condition1=x.between(l,u) # includes boundary points
+			condition2=x.between(u,l) # allow to recognize reversed bounds
+			condition=condition1 | condition2
+		else: # if bounds are str, expect exact matches, codes below also avoid a bug by using x.between where some unwanted elements are included
+			indexes=x[(x==l)|(x==u)].index
+			condition=(x.index>=indexes[0])&(x.index<=indexes[-1])
 		AndCond=AndCond & condition
 		OrCond=OrCond | condition
 	return AndCond,OrCond

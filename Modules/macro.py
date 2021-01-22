@@ -262,7 +262,7 @@ def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,me
 #=======================================================================
 def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,header_metadata=None,mainChannel='',fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None):
 	'''
-	2019-01-09 20:15
+	2020-01-20 14:49
 	Fit FreqSweep type data with lrtz_1simfit method consecutively. Parse fitting result of each fit to the next fit.
 	Syntax:
 	-------
@@ -299,6 +299,7 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 	#prepare to do consecutive fit
 	#create empty dataframe to store fitting results
 	length=len(piece.index)
+
 	index=np.linspace(0,length-1,length,dtype=int) #create index
 	headerperr=[elem+'perr' for elem in header] #standard deviation headers
 	Header=header_metadata+header+headerperr
@@ -321,10 +322,12 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 				po=p0
 			else:
 				po=po*getattr(data,normByParam.lower())
+				po[1:4]/=getattr(data,normByParam.lower()) # do not normalize d,f0,theta
 
 			# do fit, collect: optimized parameters, std dev, residual.
-			popt,_,perr,res,_,_=data.lrtz_1simfit(fitmode,funcs1,funcs2,sharenum,p0,folds1=folds1,folds2=folds2,frange=frange,bounds=bounds) #fit
+			popt,_,perr,res,_,_=data.lrtz_1simfit(fitmode,funcs1,funcs2,sharenum,po,folds1=folds1,folds2=folds2,frange=frange,bounds=bounds) #fit
 			po=popt/getattr(data,normByParam.lower()) #parse normalized fitted parameters to next fit, this will normalize phase as well, thus only applicable when phase and background terms are close to zero.
+			po[1:4]*=getattr(data,normByParam.lower()) # do not normalize d,f0,theta
 
 			condition=[(cn not in header_metadata) for cn in result.columns]
 			result.loc[ind][condition]=np.append(popt,perr) #assign fitted values
