@@ -8,6 +8,8 @@ from numpy import pi,radians,sin,cos
 import scipy.optimize
 from scipy import fftpack
 import warnings
+from sympy.solvers import solve
+from sympy import Symbol
 
 #=======================================================================
 def lrtzX(f,A,d,f0):
@@ -375,19 +377,19 @@ def he3P2Tc(P,deg=5):
 	Tc=np.polynomial.polynomial.polyval(P,popt)
 	return Tc, popt
 #=======================================================================
-def he3P2Tab(P,deg=5):
+def he3P2Tab0(P,deg=5):
 	'''
-	Calculate A-B transition temperature(mK) from given pressure(bar).
+	Calculate A-B transition temperature(mK) when B=0 from given pressure(bar).
 	Syntax:
 	-------
-	Tab,popt=he3P2Tab(P[,deg=5])
+	Tab0,popt=he3P2Tab0(P[,deg=5])
 	Parameters:
 	-----------
 	P: Pressure in bar.
 	deg: np.polyfit degree, polynomial order to fit the Vollhardt data.
 	Returns:
 	--------
-	Tab: superfluid transition temperature in mK. For pressures outside the 21.22-34.538bar range, Tab returns 0.
+	Tab0: A-B transition temperature in mK when B=0. For pressures outside the 21.22-34.538bar range, Tab returns np.nan.
 	popt: Fitted polynomial parameters, lower order terms in front.
 	Notes:
 	------
@@ -405,6 +407,47 @@ def he3P2Tab(P,deg=5):
 	P=np.where(P>34.358,np.nan,P) # solid above 34.358bar
 	Tab=np.polynomial.polynomial.polyval(P,popt)
 	return Tab, popt
+#=======================================================================
+def he3P2Tabc(P,B):
+	'''
+	Calculate A-B and superfluid transition temperature(mK) from given pressure and magnetic field. Reference is [Inseob Hahn thesis in 1993].
+	Syntax:
+	-------
+	Tab,Tc=he3P2Tabc(P,B)
+	Parameters:
+	-----------
+	P: Pressure in bar.
+	B: Magnetic field strength in Gauss.
+	Returns:
+	Tab: A-B transition temperature in mK.
+	'''
+	p=P/34.338
+	def G(p,p0,p1,p2,p3,q1):
+	    return (p0+p1*p+p2*p**2+p3*p**3)/(1+q1*p)
+	Tc=G(p,0.9294,6.659,0.3406,-0.5012,1.9844) # mK
+	tab=G(p,1.5745,-1.1222,0.3242,0,0)
+	g=1/(G(p,0.616,-1.174,0.301,0,0))
+	F0a=G(p,0.303,0.717,0.112,0,3.611)-1
+	Bc=G(p,3391,21500,-8490,0,2.098) # gauss?
+	f3=G(p,1.41,0,0,0,0)
+	f4=G(p,-0.29,-0.41,0,0,0)
+	B0=1.97e4*Tc*(1+F0a) # gauss
+	f5=( 1-f3*tab**6-f4*tab**8-(1-f3-f4)*tab**2+(1+2*f3+3*f4)*(tab**4-tab**2) )/( 1/4/g*(B0/Bc)**2*(tab**4-tab**2) )-1
+	f2=1/4/g*(B0/Bc)**2*(1+f5)-1-2*f3-3*f4
+	f1=1+f5-f2-f3-f4
+	f0=0
+	X=(1-B**2/Bc**2)**(1/4)
+	def F(Y):
+	    return (f0+f1*Y**2+f2*Y**4+f3*Y**6+f4*Y**8)/(1+f5*Y**2)-X**2
+	Y=Symbol('Y',real=True) # Y must be real
+	Yroot=solve(F(Y),Y)
+	Yroot=np.array(Yroot)
+	if Yroot.size==0: # no solution
+	    root=0 # return 0 as Tab
+	else:
+	    root=Yroot[Yroot>0][0] # Take first positive root, the following roots (if any) are probably Tab>Tc, hence discarded
+	Tab=float(Tc*root)
+	return Tab, Tc
 #=======================================================================
 def domainfft(t):
 	'''
