@@ -1,5 +1,5 @@
 '''
-Fitting function library.
+Function library.
 All Lorentzian-related functions are designed to accept input fromat (f,*p), where p contains all additional parameters.
 Input format (f,p) turns out to be inconvenient for scipy.optimize.curve_fit usage.
 '''
@@ -624,3 +624,138 @@ def CurieWeiss(T,M0,a,T0):
 	M=M0+a/(T-T0)
 	return M
 #=======================================================================
+def its90p2t_low(P):
+	'''
+	ITS-90 temperature scale for 4He vapor pressure - temperature conversion. Valid within temperature range 1.25-2.1768K.
+	Syntax:
+	-------
+	T=its90p2t_low(P)
+	Parameters:
+	-----------
+	P: 4He vapor pressure in Pa.
+	Returns:
+	--------
+	T: 4He temperature in K.
+	'''
+	a0=1.392408
+	a1=0.527153
+	a2=0.166756
+	a3=0.050988
+	a4=0.026514
+	a5=0.001975
+	a6=-0.017976
+	a7=0.005409
+	a8=0.013259
+	a9=0
+	a=[a0,a1,a2,a3,a4,a5,a6,a7,a8,a9]
+	b=5.6
+	c=2.9
+
+	t90=0
+	for i in np.arange(0,10):
+	    t90+=a[i]*((np.log(P)-b)/c)**i
+	return t90
+#=======================================================================
+def its90p2t_high(P):
+	'''
+	ITS-90 temperature scale for 4He vapor pressure - temperature conversion. Valid within temperature range 2.1768-5K.
+	Syntax:
+	-------
+	T=its90p2t_high(P)
+	Parameters:
+	-----------
+	P: 4He vapor pressure in Pa.
+	Returns:
+	--------
+	T: 4He temperature in K.
+	'''
+	a0=3.146631
+	a1=1.357655
+	a2=0.413923
+	a3=0.091159
+	a4=0.016349
+	a5=0.001826
+	a6=-0.004325
+	a7=-0.004973
+	a8=0
+	a9=0
+	a=[a0,a1,a2,a3,a4,a5,a6,a7,a8,a9]
+	b=10.3
+	c=1.9
+
+	t90=0
+	for i in np.arange(0,10):
+	    t90+=a[i]*((np.log(P)-b)/c)**i
+	return t90
+#=======================================================================
+def its90p2t_single(P):
+	'''
+	Single value ITS-90 temperature scale for 4He vapor pressure - temperature conversion. Valid within the temperature range 1.25-5K, corresponding to pressure in range 114.73433963427853-196016.5328748517Pa.
+	Syntax:
+	-------
+	T=its90p2t_single(P)
+	Parameters:
+	-----------
+	P: float, 4He vapor pressure in Pa.
+	Returns:
+	--------
+	T: float, 4He temperature in K.
+	'''
+        #1.25-5K
+	if P<5041.811486549234:
+	    return its90p2t_low(P)
+	else:
+	    return its90p2t_high(P)
+#=======================================================================
+def its90p2t(P):
+	'''
+	ITS-90 temperature scale for 4He vapor pressure - temperature conversion. Valid within the temperature range 1.25-5K, corresponding to pressure in range 114.73433963427853-196016.5328748517Pa.
+	Syntax:
+	-------
+	T=its90p2t(P)
+	Parameters:
+	-----------
+	P: list or numpy.array, 4He vapor pressure in Pa.
+	Returns:
+	--------
+	T: list or numpy.array, 4He temperature in K.
+	'''
+	its90p2t_vector=np.vectorize(its90p2t_single)
+	return its90p2t_vector(P)
+#=======================================================================
+def its90t2p_single(T):
+	'''
+	Single value ITS-90 temperature scale for 4He temperature - vapor pressure conversion. Valid within the temperature range 1.25-5K.
+	Syntax:
+	-------
+	T=its90t2p_single(P)
+	Parameters:
+	-----------
+	P: float, 4He vapor pressure in Pa.
+	Returns:
+	--------
+	T: float, 4He temperature in K.
+	'''
+	para=np.array([40.85915278, -579.04090685, 6359.9467465, -18706.78969385, 22602.12953757, -10138.28235591]) # use polynomial to make a guess solution p0
+	p0=np.polyval(para,T)
+	fun=lambda p: its90p2t_single(p)-T
+	sol=scipy.optimize.root(fun,p0)
+	return sol.x[0]
+#=======================================================================
+def its90t2p(T):
+	'''
+	ITS-90 temperature scale for 4He temperature - vapor pressure conversion. Valid within the temperature range 1.25-5K.
+	Syntax:
+	-------
+	T=its90t2p_single(P)
+	Parameters:
+	-----------
+	P: list or numpy.array, 4He vapor pressure in Pa.
+	Returns:
+	--------
+	T: list or numpy.array, 4He temperature in K.
+	'''
+	its90t2p_vector=np.vectorize(its90t2p_single)
+	return its90t2p_vector(T)
+#=======================================================================
+
