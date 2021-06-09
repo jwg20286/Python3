@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import ntpath
+import Utility as utl
 
 #=======================================================================
 class mctLog(object):
@@ -189,8 +190,8 @@ class sweepLog(object):
 		# only runs if 'date' and 'time' exists (case insensitive)
 		lower_col_names=[x.lower() for x in self._content.columns]
 		if 'date' and 'time' in lower_col_names:
-			vstrptime=np.vectorize(datetime.datetime.strptime)
-			datetime_array=vstrptime(self.date+' '+self.time, '%m/%d/%Y %H:%M:%S') # array of datetime.datetime dtype
+			vstrptime=np.vectorize(utl.strptime)
+			datetime_array=vstrptime(self.date+' '+self.time) # array of datetime.datetime dtype
 			self._datetime=pd.Series(datetime_array,dtype=object) # convert to pandas.Series of datetime.datetime
 
 		# assign self._epoch.

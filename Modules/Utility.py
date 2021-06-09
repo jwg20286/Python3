@@ -5,6 +5,7 @@ import os, time
 import numpy as np
 from numpy import isnan,exp,log
 import pandas as pd
+import datetime
 import FuncLib
 from pint import UnitRegistry
 ureg=UnitRegistry()
@@ -970,4 +971,23 @@ def cylCav_f0(L,R,c,l,m,n):
 	kmn=jnp_zeros(m,n)/R
 	flmn=1/2/np.pi*c*np.sqrt(kmn**2+kzl**2)
 	return flmn
+#=======================================================================
+def strptime(dt_str):
+	'''
+	Convert datetime string to datetime.datetime object.
+	Syntax:
+	-------
+	dt=strptime(dt_str)
+	Parameters:
+	-----------
+	dt_str: str, datetime string in the form of '%m/%d/%Y %H:%M:%S' or '%m/%d/%Y %H:%M:%S.%f', e.g. '06/09/2021 16:32:39' or '06/09/2021 16:32:39.23'.
+	Returns:
+	--------
+	dt: datetime.datetime.
+	'''
+	if len(dt_str)==19:
+	    dt_format='%m/%d/%Y %H:%M:%S'
+	elif len(dt_str)>19:
+	    dt_format='%m/%d/%Y %H:%M:%S.%f'
+	return datetime.datetime.strptime(dt_str,dt_format)
 #=======================================================================
