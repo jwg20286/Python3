@@ -420,6 +420,7 @@ def he3P2Tabc(P,B):
 	B: Magnetic field strength in Gauss.
 	Returns:
 	Tab: A-B transition temperature in mK.
+	Tc: N-S transition temperature in mK.
 	'''
 	p=P/34.338
 	def G(p,p0,p1,p2,p3,q1):
