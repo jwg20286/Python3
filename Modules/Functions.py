@@ -288,7 +288,7 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 	popt,pcov,perr,res,popt1,popt2[,fig,axes,lines]=lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0[,frange=(-inf,inf),bounds=(-inf,inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 	Parameters:
 	-----------
-	data: sweep class data object.
+	data: sweep.freqSweep class data object.
 	fitmode: only difference is if it contains 'g' or not.
 	funcs1&2: function lists of models for simultaneous fitting.
 	folds1&2: function fold lists, corresponding to terms in funcs1&2.
