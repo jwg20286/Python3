@@ -58,7 +58,7 @@ class freqSweep(object):
 			setattr(self,name.lower(),self._content[name]) 
 		# divide specified attribute by fold[name]
 
-		if mainChannel is not '':
+		if mainChannel != '':
 			setattr(self,'f',self._content['f'+mainChannel])
 			setattr(self,'x',self._content['x'+mainChannel])
 			setattr(self,'y',self._content['y'+mainChannel])
@@ -270,6 +270,63 @@ class freqSweep(object):
 			return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
 		return popt,pcov,perr,res,popt1,popt2
 #=======================================================================
+	def lrtz_1simfit_fixParam(self,fitmode,funcs1,funcs2,sharenum,fix_index,fix_param,p0,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+		'''
+		Simultaneously fit x-&y-channels with some parameters fixed to constant values, with x in front. Plot fitted curve if demanded. Function designed for sweep.py.
+		Syntax:
+		-------
+		popt,pcov,perr,res,popt1,popt2[,fig,axes,lines]=lrtz_1simfit_fixParam(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0[,frange=(-inf,inf),bounds=(-inf,inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+		Parameters:
+		-----------
+		fitmode: str, 'g', 'n', 'gn', or none of the aforementioned, determines how to preprocess x- and y-ch data.
+		funcs1&2: function lists of models for simultaneous fitting.
+		folds1&2: function fold lists, corresponding to terms in funcs1&2.
+		sharenum: number of parameters shared by funcs1&2, should include both the fixed and non-fixed parameters.
+		fix_index: int, slice or sequence of ints,
+			    Object that defines the index or indices before which values is inserted. Check numpy.insert for more info.
+		fix_params: array_like,
+			    Values to insert into p0, represent the fixed parameters.
+		p0: initial parameters guess, only include the non-fixed parameters. The fix_params and p0 combined based on fix_index will be used as the full parameter space in the model defined by funcs1, folds1, funcs2, folds2.
+		frange: frequency range (low,high) bounds. low/high can be a list or a single items.
+		bounds: parameters bounds, check scipy.optimize.curve_fit input.
+		pltflag: if non-zero, will plot fitted curves for comparison.
+		figsize: figure size.
+		wspace,hspace: width/horizontal spacing between subplots.
+		markersize,linewidth: matplotlib.pyplot.plot inputs.
+		legloc: legend location.
+		bbox_to_anchor: legend anchor point.
+		legsize: legend font size.
+		Returns:
+		--------
+		popt: fitted parameters, folds1&2 influence removed.
+		pcov: 2d array, the estimated covariance of popt.
+		perr: standard deviation associated with popt.
+		res: residual = calculated values from popt - data values.
+		popt1&2: popt separated into two parts corresponding to funcs1&2.
+		+++
+		if pltflag=True:
+		fig: figure handle.
+		axes: 2x2 axes handles array.
+		lines: lines output from Plotting.fitCheck_1sim().
+		'''
+		if folds1 is None: # assign folds1&2's default values as ones.
+			folds1=np.ones(len(funcs1))
+		if folds2 is None:
+			folds2=np.ones(len(funcs2))
+	
+		if pltflag:
+			popt,pcov,perr,res,popt1,popt2,fig,axes,lines=func.lrtz_1simfit_fixParam(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0,frange=frange,bounds=bounds,pltflag=pltflag,figsize=figsize,wspace=wspace,hspace=hspace,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		else:
+			popt,pcov,perr,res,popt1,popt2=func.lrtz_1simfit_fixParam(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0,frange=frange,bounds=bounds,pltflag=pltflag)
+
+		setattr(self,'popt_fixParam',popt) # set popt,popt1&2 as attributes
+		setattr(self,'popt1_fixParam',popt1)
+		setattr(self,'popt2_fixParam',popt2)
+
+		if pltflag:
+			return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
+		return popt,pcov,perr,res,popt1,popt2
+#=======================================================================
 #***********************************************************************
 #=======================================================================
 class vSweep(object):
@@ -316,7 +373,7 @@ class vSweep(object):
 		for name in col_names:
 			setattr(self,name.lower(),self._content[name])
 
-		if mainChannel is not '':
+		if mainChannel != '':
 			setattr(self,'v',self._content['v'+mainChannel])
 			setattr(self,'x',self._content['x'+mainChannel])
 			setattr(self,'y',self._content['y'+mainChannel])

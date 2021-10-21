@@ -977,7 +977,7 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	lines=fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res[,frange=(-inf,inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 	Parameters:
 	-----------
-	data: data with attributes f/x/y/r/gx/gy/gr
+	data: data with attributes f/x/y/r/gx/gy/gr/nx/ny/nr/gnx/gny/gnr
 	funcs1&2: function lists 1&2.
 	sharenum: number of parameters shared by funcs1&2.
 	popt1&2: fitting results for funcs1&2.
@@ -994,15 +994,23 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	------
 	When plot fitted curves, they are within frange. The terms containing the shared parameters are considered main terms, and the rest are backgrounds.
 	'''
-	if 'g' in fitmode:
+	if fitmode == 'g': #determine if gain correct fit is required
 		y1=data.gx.values
 		y2=data.gy.values
 		y3=data.gr.values
+	elif fitmode == 'n':
+		y1=data.nx.values
+		y2=data.ny.values
+		y3=data.nr.values
+	elif fitmode == 'gn':
+		y1=data.gnx.values
+		y2=data.gny.values
+		y3=data.gnr.values
 	else:
 		y1=data.x.values
 		y2=data.y.values
 		y3=data.r.values
-	
+
 	_,OrCond=utl.build_condition_series(frange,data.f)
 	x=data.f[OrCond].values
 
@@ -1036,7 +1044,7 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	line002=axes[0][0].plot(x,out1m,color='b',markersize=0,linestyle='-.',linewidth=linewidth,label='Shared component') #main terms within frange
 	line003=axes[0][0].plot(x,out1-out1m,color='g',markersize=0,linestyle='--',linewidth=linewidth,label='Background') #non-shared part is named as the background
 	axes[0][0].set_xlabel('Frequency (Hz)')
-	axes[0][0].set_ylabel('X-channel (Vpp)')
+	axes[0][0].set_ylabel('X-channel (Vrms)')
 	axes[0][0].grid()
 	axes[0][0].legend(loc=legloc,bbox_to_anchor=bbox_to_anchor,prop={'size':legsize}) #legend in X-channel
 
@@ -1045,19 +1053,19 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	line012=axes[0][1].plot(x,out2m,color='b',markersize=0,linestyle='-.',linewidth=linewidth)
 	line013=axes[0][1].plot(x,out2-out2m,color='g',markersize=0,linestyle='--',linewidth=linewidth)
 	axes[0][1].set_xlabel('Frequency (Hz)')
-	axes[0][1].set_ylabel('Y-channel (Vpp)')
+	axes[0][1].set_ylabel('Y-channel (Vrms)')
 	axes[0][1].grid()
 	
 	line100=axes[1][0].plot(data.f.values,y3,color='k',marker='.',markersize=markersize,linewidth=0)
 	line101=axes[1][0].plot(x,np.sqrt(out1**2+out2**2),color='r',markersize=0,linestyle='-',linewidth=linewidth)
 	axes[1][0].set_xlabel('Frequency (Hz)')
-	axes[1][0].set_ylabel('R-channel (Vpp)')
+	axes[1][0].set_ylabel('R-channel (Vrms)')
 	axes[1][0].grid()
 
 	line110=axes[1][1].plot([x.min(),x.max()],[0,0],color='k',markersize=0,linestyle='-',linewidth=linewidth,label='Zero guideline')#0-guideline
 	line111=axes[1][1].plot(np.concatenate((x,x)),res,color='r',marker='.',markersize=markersize,linewidth=0,label='Residual') #residual
 	axes[1][1].set_xlabel('Frequency (Hz)')
-	axes[1][1].set_ylabel('Residual (Vpp)')
+	axes[1][1].set_ylabel('Residual (Vrms)')
 	axes[1][1].grid()
 	return np.array([[line000+line001+line002+line003,line010+line011+line012+line013],[line100+line101,line110+line111]])
 #=======================================================================
@@ -1075,7 +1083,7 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,l
 	filename: str, filename of the file to be check.
 	filepopt: str, filename of the file containing the optimized parameters.
 	header: str list, header list corresponding to popt.
-	fitmode: str, fit mode used to obtain the popt.
+	fitmode: str, 'g','n','gn',None, fit mode used to obtain the popt.
 	funcs1&2: function lists of models for simultaneous fitting.	
 	sharenum: number of parameters shared by funcs1&2.
 	mainChannel: str, channel name appendix for x and y reading in sweep.
@@ -1109,13 +1117,19 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,l
 	basename=ntpath.basename(filename)
 	popt=utl.fswpFitLoad(basename,filepopt,header) #fetch popt
 	data=fswp(filename,fold=fold,correctFunc=correctFunc,logname=logname,mainChannel=mainChannel,normByParam=normByParam)
-	if 'g' in fitmode:
+	if fitmode == 'g': #determine if gain correct fit is required
 		y1=data.gx
 		y2=data.gy
+	elif fitmode == 'n':
+		y1=data.nx
+		y2=data.ny
+	elif fitmode == 'gn':
+		y1=data.gnx
+		y2=data.gny
 	else:
 		y1=data.x
 		y2=data.y
-	
+
 	folds1=np.ones(len(funcs1))
 	folds2=np.ones(len(funcs2))
 	_,OrCond=utl.build_condition_series(frange,data.f)

@@ -470,10 +470,9 @@ def fswpFitLoad(filename,filepopt,header):
 	popt: np.array, recorded popt for the file pointed to by filename.
 	'''
 	df=pd.read_csv(filepopt,delim_whitespace=True)
-	r=df[df['Filename']==filename]
-	condition=[(elem in header) for elem in df.columns]
-	popt=r[r.columns[condition]].values[0]
-	return popt
+	r=df[df['Filename']==filename] # find the row correspond to the filename
+	popt=r[header] # extract the parameters in the same order as given by header
+	return popt.values[0] # return an array
 #=======================================================================
 def nmrFitLoad(filenmr,filepopt):
 	'''

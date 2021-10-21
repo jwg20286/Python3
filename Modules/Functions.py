@@ -95,6 +95,36 @@ def assembleShare(func1,func2,sharenum):
 	
 	return newFunc
 #=======================================================================
+def fixParam(func, fix_index, fix_params, other_params):
+	'''
+	Create a function similar to func, but requires fewer parameters. It only requires other_params and fix_params are fixed, while func requires both to be variable.
+	Syntax:
+	-------
+	func_fixParam = fixParam(func, fix_index, fix_params, other_params).
+	Parameters:
+	-----------
+	func: function to be replaced.
+	fix_index: int, slice or sequence of ints,
+		    Object that defines the index or indices before which values is inserted. Check numpy.insert for more info.
+	fix_params: array_like,
+		    Values to insert into other_params. 
+	other_params: array_like,
+		    Input array.
+	Returns:
+	--------
+	func_fixParam: function that replaces func. It requires fewer parameters than func. Instead of requiring params, it only requires other_params, while fix_params are given fixed values.
+	Known issues:
+	-------------
+	If len(fix_index)>1, paramsize doesn't work on func_fixParam.
+	'''
+	other_params = np.asarray(other_params)
+    
+	def func_fixParam(f, *other_params):
+	    param = np.insert(other_params, fix_index, fix_params) # combine fix_params and other_params to make params suitable for func.
+	    return func(f, *param) # do the same job as func using param.
+
+	return func_fixParam
+#=======================================================================
 def paramUnfold(popt,funcs1,folds1,funcs2,folds2,sharenum):
 	'''
 	Translate popt based on funcs1,folds1,funcs2,folds2 to remove effect of folds1&2 in popt.
@@ -289,7 +319,7 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 	Parameters:
 	-----------
 	data: sweep.freqSweep class data object.
-	fitmode: only difference is if it contains 'g' or not.
+	fitmode: str, 'g', 'n', 'gn', or none of the aforementioned, determines how to preprocess x- and y-ch data.
 	funcs1&2: function lists of models for simultaneous fitting.
 	folds1&2: function fold lists, corresponding to terms in funcs1&2.
 	sharenum: number of parameters shared by funcs1&2.
@@ -316,9 +346,15 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 	axes: 2x2 axes handles array.
 	lines: lines output from Plotting.fitCheck_1sim().
 	'''
-	if 'g' in fitmode: #determine if gain correct fit is required
+	if fitmode == 'g': #determine if gain correct fit is required
 		y1=data.gx
 		y2=data.gy
+	elif fitmode == 'n':
+		y1=data.nx
+		y2=data.ny
+	elif fitmode == 'gn':
+		y1=data.gnx
+		y2=data.gny
 	else:
 		y1=data.x
 		y2=data.y
@@ -346,6 +382,85 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 		return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
 
 	return popt,pcov,perr,res,popt1,popt2
+#=======================================================================
+def lrtz_1simfit_fixParam(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+        '''
+	Simultaneously fit x-&y-channels with some parameters fixed to constant values, with x in front. Plot fitted curve if demanded. Function designed for sweep.py.
+	Syntax:
+	-------
+	popt,pcov,perr,res,popt1,popt2[,fig,axes,lines]=lrtz_1simfit_fixParam(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0[,frange=(-inf,inf),bounds=(-inf,inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	data: sweep.freqSweep class data object.
+	fitmode: str, 'g', 'n', 'gn', or none of the aforementioned, determines how to preprocess x- and y-ch data.
+	funcs1&2: function lists of models for simultaneous fitting.
+	folds1&2: function fold lists, corresponding to terms in funcs1&2.
+	sharenum: number of parameters shared by funcs1&2, should include both the fixed and non-fixed parameters.
+	fix_index: int, slice or sequence of ints,
+		    Object that defines the index or indices before which values is inserted. Check numpy.insert for more info.
+	fix_params: array_like,
+		    Values to insert into p0, represent the fixed parameters.
+	p0: initial parameters guess, only include the non-fixed parameters. The fix_params and p0 combined based on fix_index will be used as the full parameter space in the model defined by funcs1, folds1, funcs2, folds2.
+	frange: frequency range (low,high) bounds. low/high can be a list or a single items.
+	bounds: parameters bounds, check scipy.optimize.curve_fit input.
+	pltflag: if non-zero, will plot fitted curves for comparison.
+	figsize: figure size.
+	wspace,hspace: width/horizontal spacing between subplots.
+	markersize,linewidth: matplotlib.pyplot.plot inputs.
+	legloc: legend location.
+	bbox_to_anchor: legend anchor point.
+	legsize: legend font size.
+	Returns:
+	--------
+	popt: fitted parameters, folds1&2 influence removed.
+	pcov: 2d array, the estimated covariance of popt.
+	perr: standard deviation associated with popt.
+	res: residual = calculated values from popt - data values.
+	popt1&2: popt separated into two parts corresponding to funcs1&2.
+	+++
+	if pltflag=True:
+	fig: figure handle.
+	axes: 2x2 axes handles array.
+	lines: lines output from Plotting.fitCheck_1sim().
+        '''
+        if fitmode == 'g': #determine if gain correct fit is required
+                y1=data.gx
+                y2=data.gy
+        elif fitmode == 'n':
+                y1=data.nx
+                y2=data.ny
+        elif fitmode == 'gn':
+                y1=data.gnx
+                y2=data.gny
+        else:
+                y1=data.x
+                y2=data.y
+
+        _,OrCond=utl.build_condition_series(frange,data.f)
+        x=data.f[OrCond].values # put data.f within frange into x
+        y1=y1[OrCond].values # truncate y1,y2 according to x, too
+        y2=y2[OrCond].values
+
+        y=np.concatenate((y1,y2)) #concatenate two channels to create signal
+        model1=assemble(funcs1,folds1) #create x model
+        model2=assemble(funcs2,folds2) #create y model
+        model=assembleShare(model1,model2,sharenum) # sharenum should include the shared fixed parameters
+        fitmodel=fixParam(model, fix_index, fix_param, p0)
+        
+        popt,pcov=scipy.optimize.curve_fit(fitmodel, x,y,p0=p0,bounds=bounds)
+        perr=np.sqrt(np.diag(pcov))
+        res=fitmodel(x,*popt)-y # calculate residual before update popt
+        
+        popt_full=np.insert(popt, fix_index, fix_param)
+        _,popt1,popt2=paramUnfold(popt_full,funcs1,folds1,funcs2,folds2,sharenum)
+        
+        if pltflag:
+                fig,axes=plt.subplots(2,2,figsize=figsize)
+                fig.subplots_adjust(wspace=wspace,hspace=hspace)
+                lines=Plotting.fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+                return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
+
+        return popt,pcov,perr,res,popt1,popt2
 #=======================================================================
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     '''
