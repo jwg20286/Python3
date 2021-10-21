@@ -1067,7 +1067,7 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	axes[1][1].set_xlabel('Frequency (Hz)')
 	axes[1][1].set_ylabel('Residual (Vrms)')
 	axes[1][1].grid()
-	return np.array([[line000+line001+line002+line003,line010+line011+line012+line013],[line100+line101,line110+line111]])
+	return np.array([[line000+line001+line002+line003,line010+line011+line012+line013],[line100+line101,line110+line111]],dtype='O') # element is python object
 #=======================================================================
 def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,logname=None,mainChannel='',fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
