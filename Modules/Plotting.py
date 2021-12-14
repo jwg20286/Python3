@@ -968,9 +968,9 @@ def vSweeps_multiple_1device(device,*filenums,fold=dict(),logname=None,mainChann
 	fig,axes,lines=vSweeps_multiple(filename_dict,logname=logname,correctFunc=correctFunc,corrByParam=corrByParam,pltmode=pltmode,subplots_layout=subplots_layout,figsize=figsize,wspace=wspace,hspace=hspace,fillstyle=fillstyle,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 	return fig,axes,lines
 #=======================================================================
-def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=(-np.inf,np.inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,mainsize=None,frange=(-np.inf,np.inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
-	2017-06-22 11:38
+	2021-10-31 23:08
 	Check sim fitting result and plot. Assume funcs1&2 as X&Y-channels, and sqrt(x**2+y**2) as R-channel. 
 	Syntax:
 	-------
@@ -982,6 +982,7 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	sharenum: number of parameters shared by funcs1&2.
 	popt1&2: fitting results for funcs1&2.
 	res: fitting residuals.
+	mainsize: int, the number of parameters representing the actual signal, the rest are viewed as backgrounds; if none, set mainsize=sharenum.
 	frange: frequency range (low,high) bounds.
 	markersize,linewidth: axes and fig settings.
 	legloc: legend location.
@@ -1019,8 +1020,11 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	out1=model1(x,*popt1)
 	out2=model2(x,*popt2)
 
+	if mainsize is None: # set mainsize to sharenum if mainsize is None
+		mainsize=sharenum
+
 	n=1 #create main,bg functions, and their popt values pmain,pbg
-	while func.paramsize(func.assemble(funcs1[:n],np.ones(n)))<sharenum:
+	while func.paramsize(func.assemble(funcs1[:n],np.ones(n)))<mainsize:
 		n+=1
 	main1=func.assemble(funcs1[:n],np.ones(n))
 	ps1=func.paramsize(main1) #param size of main1
@@ -1030,7 +1034,7 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	#pbg1=popt1[ps1:]
 
 	n=1
-	while func.paramsize(func.assemble(funcs2[:n],np.ones(n)))<sharenum:
+	while func.paramsize(func.assemble(funcs2[:n],np.ones(n)))<mainsize:
 		n+=1
 	main2=func.assemble(funcs2[:n],np.ones(n))
 	ps2=func.paramsize(main2)
@@ -1069,9 +1073,9 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frang
 	axes[1][1].grid()
 	return np.array([[line000+line001+line002+line003,line010+line011+line012+line013],[line100+line101,line110+line111]],dtype='O') # element is python object
 #=======================================================================
-def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,logname=None,mainChannel='',fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,mainsize=None,logname=None,mainChannel='',fold=dict(),correctFunc=utl.gainCorrect,normByParam='VLowVpp',frange=(-np.inf,np.inf),figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
-	2017-06-22 11:38
+	2021-10-31 23:08
 	Check sim fitting result and plot using fitted parameters read from a file. Assume funcs1&2 as X&Y-channels, and sqrt(x**2+y**2) as R-channel. 
 
 	Syntax:
@@ -1086,6 +1090,7 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,l
 	fitmode: str, 'g','n','gn',None, fit mode used to obtain the popt.
 	funcs1&2: function lists of models for simultaneous fitting.	
 	sharenum: number of parameters shared by funcs1&2.
+	mainsize: int, the number of parameters representing the actual signal, the rest are viewed as backgrounds; if none, set mainsize=sharenum.
 	mainChannel: str, channel name appendix for x and y reading in sweep.
 	logname: str, path to the log file name.
 	fold: dict, divide a specified attribute by a given number, e.g. {'x':-1} will divide self.x by -1.
@@ -1145,7 +1150,7 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,l
 	_,popt1,popt2=func.paramUnfold(popt,funcs1,folds1,funcs2,folds2,sharenum)
 	fig,axes=plt.subplots(2,2,figsize=figsize)
 	fig.subplots_adjust(wspace=wspace,hspace=hspace)
-	lines=fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+	lines=fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,mainsize=None,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 	return fig,axes,lines
 #=======================================================================
 def nmr_single(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):

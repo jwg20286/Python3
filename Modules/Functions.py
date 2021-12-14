@@ -310,7 +310,7 @@ def lrtz1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-np
 
 	return popt,pcov,perr,res,popt1,popt2
 #=======================================================================
-def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,mainsize=None,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''
 	Simultaneously fit x-&y-channels, with x in front. Plot fitted curve if demanded. Function designed for sweep.py.
 	Syntax:
@@ -327,6 +327,7 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 	frange: frequency range (low,high) bounds. low/high can be a list or a single items.
 	bounds: parameters bounds, check scipy.optimize.curve_fit input.
 	pltflag: if non-zero, will plot fitted curves for comparison.
+	mainsize: int, the number of parameters representing the actual signal, the rest are viewed as backgrounds; if none, set mainsize=sharenum.
 	figsize: figure size.
 	wspace,hspace: width/horizontal spacing between subplots.
 	markersize,linewidth: matplotlib.pyplot.plot inputs.
@@ -378,12 +379,12 @@ def lrtz_1simfit(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=(-n
 	if pltflag: #plot after update popt
 		fig,axes=plt.subplots(2,2,figsize=figsize)
 		fig.subplots_adjust(wspace=wspace,hspace=hspace)
-		lines=Plotting.fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+		lines=Plotting.fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,mainsize=mainsize,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
 
 	return popt,pcov,perr,res,popt1,popt2
 #=======================================================================
-def lrtz_1simfit_fixParam(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+def lrtz_1simfit_fixParam(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0,mainsize=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
         '''
 	Simultaneously fit x-&y-channels with some parameters fixed to constant values, with x in front. Plot fitted curve if demanded. Function designed for sweep.py.
 	Syntax:
@@ -404,6 +405,7 @@ def lrtz_1simfit_fixParam(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_
 	frange: frequency range (low,high) bounds. low/high can be a list or a single items.
 	bounds: parameters bounds, check scipy.optimize.curve_fit input.
 	pltflag: if non-zero, will plot fitted curves for comparison.
+	mainsize: int, the number of parameters representing the actual signal, the rest are viewed as backgrounds; if none, set mainsize=sharenum.
 	figsize: figure size.
 	wspace,hspace: width/horizontal spacing between subplots.
 	markersize,linewidth: matplotlib.pyplot.plot inputs.
@@ -457,7 +459,7 @@ def lrtz_1simfit_fixParam(data,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_
         if pltflag:
                 fig,axes=plt.subplots(2,2,figsize=figsize)
                 fig.subplots_adjust(wspace=wspace,hspace=hspace)
-                lines=Plotting.fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+                lines=Plotting.fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,mainsize=mainsize,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
                 return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
 
         return popt,pcov,perr,res,popt1,popt2

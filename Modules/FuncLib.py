@@ -122,6 +122,32 @@ def bgInv3(f,c3):
 	c3=float(c3)
 	return c3/f/f/f
 #=======================================================================
+def bgPoly_Inv2Lin(f,ai1,a0,a1):
+	f=np.array(f,float)
+	ai1,a0,a1=float(ai1),float(a0),float(a1)
+	return ai1/f+a0+a1*f
+#=======================================================================
+def bgPoly_Inv2Lin_x(f,ai1,a0,a1,bi1,b0,b1,phase):
+	phase=float(phase)
+	return bgPoly_Inv2Lin(f,ai1,a0,a1)*cos(radians(phase))-bgPoly_Inv2Lin(f,bi1,b0,b1)*sin(radians(phase))
+#=======================================================================
+def bgPoly_Inv2Lin_y(f,ai1,a0,a1,bi1,b0,b1,phase):
+	phase=float(phase)
+	return bgPoly_Inv2Lin(f,ai1,a0,a1)*sin(radians(phase))+bgPoly_Inv2Lin(f,bi1,b0,b1)*cos(radians(phase))
+#=======================================================================
+def bgPoly_Inv22Sq(f,ai2,ai1,a0,a1,a2):
+	f=np.array(f,float)
+	c2,c1,a0,a1,a2=float(c2),float(c1),float(a0),float(a1),float(a2)
+	return c2/f/f+c1/f+a0+a1*f+a2*f*f
+#=======================================================================
+def bgPoly_Inv22Sq_x(f,ai2,ai1,a0,a1,a2,bi2,bi1,b0,b1,b2,phase):
+	phase=float(phase)
+	return bgPoly_Inv2_Sq(f,ai2,ai1,a0,a1,a2)*cos(radians(phase))-bgPoly_Inv2_Sq(f,bi2,bi1,b0,b1,b2)*sin(radians(phase))
+#=======================================================================
+def bgPoly_Inv22Sq_y(f,ai2,ai1,a0,a1,a2,bi2,bi1,b0,b1,b2,phase):
+	phase=float(phase)
+	return bgPoly_Inv2_Sq(f,ai2,ai1,a0,a1,a2)*sin(radians(phase))+bgPoly_Inv2_Sq(f,bi2,bi1,b0,b1,b2)*cos(radians(phase))
+#=======================================================================
 def PLTS2000T2P(T,Pn=34.3934):
 	'''
 	Temperature to pressure in PLTS-2000 scale. Limit is 0.9mK-1K.

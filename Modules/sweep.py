@@ -213,7 +213,7 @@ class freqSweep(object):
 			lines=Plotting.freqSweep_all(axes,self,pltmode,iter_color=iter_color,iter_marker=iter_marker,iter_linestyle=iter_linestyle,fillstyle=fillstyle,markeredgewidth=markeredgewidth,markersize=markersize,linewidth=linewidth,legflag=legflag,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 			return fig,axes,lines
 #=======================================================================
-	def lrtz_1simfit(self,fitmode,funcs1,funcs2,sharenum,p0,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	def lrtz_1simfit(self,fitmode,funcs1,funcs2,sharenum,p0,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,mainsize=None,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 		'''
 		Simultaneously fit x-&y-channels, with x in front. Plot fitted curve if demanded.
 		Syntax:
@@ -229,6 +229,7 @@ class freqSweep(object):
 		frange: frequency range (low,high) bounds.
 		bounds: parameters bounds, check scipy.optimize.curve_fit input.
 		pltflag: if non-zero, will plot fitted curves for comparison.
+		mainsize: int, the number of parameters representing the actual signal, the rest are viewed as backgrounds; if none, set mainsize=sharenum.
 		figsize: figure size.
 		wspace,hspace: width/horizontal spacing between subplots.
 		markersize,linewidth: matplotlib.pyplot.plot inputs.
@@ -258,7 +259,7 @@ class freqSweep(object):
 			folds2=np.ones(len(funcs2))
 		
 		if pltflag:
-			popt,pcov,perr,res,popt1,popt2,fig,axes,lines=func.lrtz_1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag,figsize=figsize,wspace=wspace,hspace=hspace,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			popt,pcov,perr,res,popt1,popt2,fig,axes,lines=func.lrtz_1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag,mainsize=mainsize,figsize=figsize,wspace=wspace,hspace=hspace,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		else:
 			popt,pcov,perr,res,popt1,popt2=func.lrtz_1simfit(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,p0,frange=frange,bounds=bounds,pltflag=pltflag)
 
@@ -270,7 +271,7 @@ class freqSweep(object):
 			return popt,pcov,perr,res,popt1,popt2,fig,axes,lines
 		return popt,pcov,perr,res,popt1,popt2
 #=======================================================================
-	def lrtz_1simfit_fixParam(self,fitmode,funcs1,funcs2,sharenum,fix_index,fix_param,p0,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
+	def lrtz_1simfit_fixParam(self,fitmode,funcs1,funcs2,sharenum,fix_index,fix_param,p0,folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=0,mainsize=None,figsize=(12,9),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 		'''
 		Simultaneously fit x-&y-channels with some parameters fixed to constant values, with x in front. Plot fitted curve if demanded. Function designed for sweep.py.
 		Syntax:
@@ -290,7 +291,9 @@ class freqSweep(object):
 		frange: frequency range (low,high) bounds. low/high can be a list or a single items.
 		bounds: parameters bounds, check scipy.optimize.curve_fit input.
 		pltflag: if non-zero, will plot fitted curves for comparison.
+		mainsize: int, the number of parameters representing the actual signal, the rest are viewed as backgrounds; if none, set mainsize=sharenum.
 		figsize: figure size.
+
 		wspace,hspace: width/horizontal spacing between subplots.
 		markersize,linewidth: matplotlib.pyplot.plot inputs.
 		legloc: legend location.
@@ -315,7 +318,7 @@ class freqSweep(object):
 			folds2=np.ones(len(funcs2))
 	
 		if pltflag:
-			popt,pcov,perr,res,popt1,popt2,fig,axes,lines=func.lrtz_1simfit_fixParam(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0,frange=frange,bounds=bounds,pltflag=pltflag,figsize=figsize,wspace=wspace,hspace=hspace,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			popt,pcov,perr,res,popt1,popt2,fig,axes,lines=func.lrtz_1simfit_fixParam(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0,frange=frange,bounds=bounds,pltflag=pltflag,mainsize=mainsize,figsize=figsize,wspace=wspace,hspace=hspace,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 		else:
 			popt,pcov,perr,res,popt1,popt2=func.lrtz_1simfit_fixParam(self,fitmode,funcs1,folds1,funcs2,folds2,sharenum,fix_index,fix_param,p0,frange=frange,bounds=bounds,pltflag=pltflag)
 
