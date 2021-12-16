@@ -640,4 +640,49 @@ def nmr_1simfit(data,p0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pltflag=
 
 	return popt,pcov,perr
 #=======================================================================
+def curve_linfit(x, y, reverse=False, roll_length=20, per_tol=1):
+	'''
+	2021-12-14 21:03
+	Do a linear fit to the head or tail of a 2d curve. The program starts by linear fitting the first roll_length of points at the head/tail of the curve, and record the std deviation. Then increase roll_length while keep linear fitting the data. The program stops when the std deviation has changed more than the given percentage tolerance.
+	Syntax:
+	-------
+	para, roll_length = curve_linfit(x, y[, reverse=False, roll_length=20, per_tol=1])
+	Parameters:
+	-----------
+	x,y: lists or np.arrays, curve data.
+	reverse: Boolean, sort x and y according to reverse, False is ascending x, True is descending x.
+	roll_length: float, rolling length, the number of points for the initial linear fit.
+	per_tol: float, percentage tolerance threshold before another linear fit is called impossible.
+	Returns:
+	--------
+	para: list, linear fit parameters [slope, intercept].
+	roll_length: float, length of the used data for the final fit.
+	'''
+	x_sorted = sorted(x, reverse=reverse)
+	y_sorted = [ys for _,ys in sorted(zip(x, y), reverse=reverse)]
+
+	#-----------------
+	x_start = x_sorted[0:roll_length:] # data to start with
+	y_start = y_sorted[0:roll_length:]
+
+	para = np.polyfit(x_start, y_start, 1)
+	residual = y_start - np.polyval(para, x_start)
+	stddev = np.std(residual)
+	tolerance = stddev * (1 + per_tol) # upper limit of stddev
+
+	i=1
+	while ((stddev<tolerance)&(i<=len(x_sorted) )) :
+	    x_select = x_sorted[0:roll_length+i:]
+	    y_select = y_sorted[0:roll_length+i:]
+	    para = np.polyfit(x_select,y_select,1)
+	    # calculate rolling residual
+	    x_last = x_sorted[i:roll_length+i:] # crop the last roll_length points from included data
+	    y_last = y_sorted[i:roll_length+i:]
+	    residual = y_last - np.polyval(para, x_last)
+	    stddev = np.std(residual)
+	    i+=1
+	
+	return para, roll_length+i
+#=======================================================================
+
 
