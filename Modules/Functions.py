@@ -670,8 +670,9 @@ def curve_linfit(x, y, reverse=False, roll_length=20, per_tol=1):
 	stddev = np.std(residual)
 	tolerance = stddev * (1 + per_tol) # upper limit of stddev
 
-	i=1
-	while ((stddev<tolerance)&(i<=len(x_sorted) )) :
+	i=0
+	while ((stddev<tolerance)&(roll_length+i+1<=len(x_sorted) )) :
+	    i+=1
 	    x_select = x_sorted[0:roll_length+i:]
 	    y_select = y_sorted[0:roll_length+i:]
 	    para = np.polyfit(x_select,y_select,1)
@@ -680,7 +681,6 @@ def curve_linfit(x, y, reverse=False, roll_length=20, per_tol=1):
 	    y_last = y_sorted[i:roll_length+i:]
 	    residual = y_last - np.polyval(para, x_last)
 	    stddev = np.std(residual)
-	    i+=1
 	
 	return para, roll_length+i
 #=======================================================================

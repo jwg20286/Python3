@@ -19,6 +19,7 @@ import FreqSweep
 import nmr
 
 from sweep import freqSweep as fswp
+from sweep import vSweep as vswp
 from FreqSweep import FreqSweep as freqswp
 from nmr import nmr
 
@@ -430,6 +431,85 @@ def lrtz_1simfit_fixParam_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,f
 		else: #file doesn't exist
 			result.to_csv(savename,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save
 	return result
+#=======================================================================
+def curve_linfit_batch(device,filenums,fitmode,header_metadata,fold={},mainChannel='',logname=None,correctFunc=utl.gainCorrect_10mVrms,corrByParam='f',reverse=False,roll_length=20,per_tol=1,pMctCalib=None,pMctBranch=None,mctBranch='low',Pn=34.3934,savename=None):
+	'''
+	2021-12-24 17:00
+	Batch curve_linfit on files.
+	Syntax:
+	-------
+	result = curve_linfit_batch(device,filenums,fitmode,header_metadata[,fitmode='',mainChannel='',logname=None,correctFunc=utl.gainCorrect_10mVrms,corrByParam='f',reverse=False,roll_length=20,per_tol=1,pMctCalib=None,pMctBranch=None,mctBranch='low',Pn=34.3934,savename=savename])
+	Parameters:
+	-----------
+	device: str, device name to prepend to filenum.
+	filenums: File numbers to be fitted, (filelow,filehigh),fitting is done from filelow to filehigh, both filelow and filehigh can be either a list or a single item.
+	fitmode: str, only matters if it 'g' is included.
+	header_metadata: list of str, metadata of fitted files read from log.
+	mainChannel,fold,correctFunc,corrByParam,logname: File load parameters; logname is a str representing the full path of the log file.
+	reverse,roll_length,per_tol: Functions.curve_linfit parameters.
+	pMctCalib/mctBranch/Pn: parameters to update Tmct from MCT calibration and new Pn in the designated branch of melting curve. mctBranch='low' or 'high'.
+	savename: str, result is written to this file.
+	Returns:
+	--------
+	result: pandas.DataFrame, fitted results, contains filename, epoch, metadata designated by header_metadata, and fit results as well.
+	'''
+	log = pd.read_csv(logname, delim_whitespace=True)
+
+	n=max(np.asarray(filenums[0]).size,np.asarray(filenums[1]).size) #choose the longer one's dimension as n
+	lb,ub=utl.prepare_bounds(filenums,n)
+	filenums=(lb,ub)
+
+	dirname=ntpath.dirname(device)
+	basename=ntpath.basename(device)
+	vmkfn=np.vectorize(utl.mkFilename)#create filenames
+	filerange=(vmkfn(basename,filenums[0]),vmkfn(basename,filenums[1]))
+
+	#fetch the log associated with mems data to be fitted, use union of all ranges
+	_,OrCond=utl.build_condition_dataframe(filerange,log,'Filename') #take union all ranges
+	piece=log[OrCond] #these files will be fitted
+
+	#prepare to do consecutive fit
+	#create empty dataframe to store fitting results
+	length=len(piece.index)
+
+	index=np.linspace(0,length-1,length,dtype=int) #create index
+	header=['slope', 'intercept', 'roll_length'] # header to store outputs
+	Header=header_metadata+header
+	result=pd.DataFrame(index=index,columns=Header) #empty dataframe
+
+	ind=0
+	print('Start-',end='') #progress indicator
+	for i in range(0,n):
+		indexl=piece[piece['Filename']==filerange[0][i]].index.values[0]
+		indexu=piece[piece['Filename']==filerange[1][i]].index.values[0]
+		direction=int(np.sign(indexu-indexl+0.5)) # +0.5 so that 0->1
+		piecei=piece.loc[indexl:indexu:direction] # clip piece, order of rows depend on frange pairs, it can go backwards
+		for filename in piecei['Filename']:
+			data=vswp(dirname+'/'+filename, fold=fold, logname=logname, mainChannel=mainChannel, correctFunc=correctFunc, corrByParam=corrByParam)
+			if pMctCalib is not None: # update data.Tmct and its relevant
+				_=data.mctC2T(pMctCalib,branch=mctBranch,Pn=Pn)
+			
+			para, fit_length = data.curve_linfit(fitmode=fitmode, reverse=reverse, roll_length=roll_length, per_tol=per_tol)
+			
+			condition=[(cn not in header_metadata) for cn in result.columns]
+			result.loc[ind][condition]=np.append(para,fit_length) #assign fitted values
+			result.loc[ind]['Filename']=filename
+			result.loc[ind]['Epoch']=data._epoch
+			for name in header_metadata:
+				if name not in ['Filename','Epoch']:
+					result.loc[ind][name]=getattr(data,name.lower())
+			ind+=1
+			print('-%s_%.2f%%-'%(re.sub(r'[^0-9]','',filename)[1::],(ind/length*100)),end='') #update batch progress
+	print('-Finished',end='')
+
+	if savename is not None : # save to specified file
+		if os.path.isfile(savename): #file already exists
+			result.to_csv(savename,sep='\t',mode='a',na_rep=np.nan,index=False,header=False,float_format='%.12e'.format)#append w/o header
+		else : #file doesn't exist
+			result.to_csv(savename,sep='\t',na_rep=np.nan,index=False,float_format='%.12e'.format) #create new file and save
+	# return result
+	return result
+
 #=======================================================================
 def nmr_1simfit_batch(device,filenums,p0,dt=2e-7,zerofillnum=0,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),logpath=None,header_metadata=['Filename','_epoch','_zerofillnum','Cmct_pF'],dtLabel='dt_s',savename=None):
 	'''

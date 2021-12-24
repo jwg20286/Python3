@@ -977,6 +977,7 @@ def fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,mains
 	lines=fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res[,frange=(-inf,inf),markersize=4,linewidth=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10])
 	Parameters:
 	-----------
+	axes: matplotlib.axes.
 	data: data with attributes f/x/y/r/gx/gy/gr/nx/ny/nr/gnx/gny/gnr
 	funcs1&2: function lists 1&2.
 	sharenum: number of parameters shared by funcs1&2.
@@ -1152,6 +1153,72 @@ def fitCheck_1sim_file(filename,filepopt,header,fitmode,funcs1,funcs2,sharenum,m
 	fig.subplots_adjust(wspace=wspace,hspace=hspace)
 	lines=fitCheck_1sim(axes,data,fitmode,funcs1,funcs2,sharenum,popt1,popt2,res,mainsize=None,frange=frange,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
 	return fig,axes,lines
+#=======================================================================
+def fitCheck_curve_linfit(axis,data,fitmode,reverse,para,roll_length,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	2021-12-24 16:59
+	Plot Functions.curve_linfit fit result.
+	Syntax:
+	lines = fitCheck_curve_linfit(axis,data,fitmode,reverse,para,roll_length[,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	axis: matplotlib.axes.
+	data: sweep.vSweep object.
+	fitmode: str, only matters if 'g' is included.
+	reverse: boolean, False means ascending v fit, True means descending v fit.
+	para, roll_length: fitted parameters and included number of points.
+	markersize,linewidth,legloc,bbox_to_anchor,legsize: plot settings.
+	Returns:
+	--------
+	lines: numpy array of matplotlib.lines.Line2D.
+	'''
+	x=data.v
+	if 'g' in fitmode:
+		y=data.gr
+	else:
+		y=data.r
+	
+	line0 = axis.plot(x,y,marker='.',markersize=markersize,linestyle='',color='C0',label='Data')
+	x_fit = sorted(x,reverse=reverse)[0:roll_length:1]
+	y_fit = np.polyval(para, x_fit)
+	line1 = axis.plot(x_fit,y_fit,marker='',linestyle='-',linewidth=linewidth,color='red',label='Fit')
+	axis.set_xlabel('V (Vpp)')
+	axis.set_ylabel('R-channel (Vrms)')
+	axis.legend(loc=legloc,bbox_to_anchor=bbox_to_anchor,prop={'size':legsize})
+	return np.concatenate((line0, line1))
+#=======================================================================
+def fitCheck_curve_linfit_file(filename,filepopt,fitmode,reverse,header,fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,corrByParam='f',figsize=(8,6),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(0,1),legsize=10):
+	'''
+	2021-12-24 16:59
+	Plot Functions.curve_linfit fit result from saved results.
+	Syntax:
+	-------
+	fig,ax,lines=fitCheck_curve_linfit_file(filename,filepopt,fitmode,reverse,header[,fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,corrByParam='f',figsize=(8,6),wspace=0.4,hspace=0.3,markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(0,1),legsize=10])
+	Parameters:
+	-----------
+	filename: str, full path to the data file.
+	filepopt: str, full path to the saved result flie.
+	fitmode: str, only matters if 'g' is inluded.
+	reverse: boolean, curve_linfit parameter.
+	header: list of str, headers for fitted parameters and roll_length; e.g. ['slope','intercept','roll_length'].
+	fold,logname,mainChannel,correctFunc,corrByParam: sweep.vSweep input parameters.
+	figsize,wspace,hspace,markersize,linewidth,legloc,legloc,bbox_to_anchor,legsize: plot settings.
+	Returns:
+	--------
+	fig,ax,lines: plot handles.
+	'''
+	from sweep import vSweep as vswp
+
+	basename = ntpath.basename(filename)
+	popt = utl.fswpFitLoad(basename,filepopt,header) #fetch popt
+	para, roll_length = popt[0:2:], int(popt[2])
+	data = vswp(filename,fold=fold,logname=logname,mainChannel=mainChannel,correctFunc=correctFunc,corrByParam=corrByParam)
+
+	fig,ax = plt.subplots(1,1,figsize=figsize)
+	fig.subplots_adjust(wspace=wspace, hspace=hspace)
+	lines = fitCheck_curve_linfit(ax,data,fitmode,reverse,para,roll_length,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+	return fig,ax,lines
+	
 #=======================================================================
 def nmr_single(axis,swpdata,pltmode,iter=0,fillstyle='full',markeredgewidth=0.5,markersize=4,linewidth=1,legflag=1,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 	'''

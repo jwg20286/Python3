@@ -453,53 +453,38 @@ class vSweep(object):
 		setattr(self,'tmct',pd.Series(T))
 		return T
 #=======================================================================
-	def curve_linfit(self, fitmode='g', reverse=False, roll_length=20, per_tol=1):
+	def curve_linfit(self, fitmode='g', reverse=False, roll_length=20, per_tol=1,pltflag=False,figsize=(6,4),markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(0,1),legsize=10):
 		'''
 		2021-12-21 18:27
 		Do a linear fit to the head or tail of a 2d curve. The program starts by linear fitting the first roll_length of points at the head/tail of the curve, and record the std deviation. Then increase roll_length while keep linear fitting the data. The program stops when the std deviation has changed more than the given percentage tolerance.
 		Syntax:
 		-------
-		para, roll_length = curve_linfit([fitmode='g', reverse=False, roll_length=20, per_tol=1])
+		para, roll_length[, fig, ax, lines]= curve_linfit([fitmode='g', reverse=False, roll_length=20, per_tol=1,pltflag=False,figsize=(12,6),markersize=4,linewidth=1,legloc='upper left',bbox_to_anchor=(0,1),legsize=10])
 		Parameters:
 		-----------
 		reverse: Boolean, sort v and r according to reverse, False is ascending v, True is descending v.
 		roll_length: float, rolling length, the number of points for the initial linear fit.
 		per_tol: float, percentage tolerance threshold before another linear fit is called impossible.
+		figsize,markersize,linewidth,legloc,bbox_to_anchor,legsize: plot settings.
 		Returns:
 		--------
 		para: list, linear fit parameters [slope, intercept].
 		roll_length: float, length of the used data for the final fit.
+		pltflag: boolean, plot flag.
+		fig,ax,lines: plot handles.
 		'''
 		x = self.v
 		if 'g' in fitmode:
 			y = self.gr
 		else:
 			y = self.r
-		x_sorted = sorted(x, reverse=reverse)
-		y_sorted = [ys for _,ys in sorted(zip(x, y), reverse=reverse)]
-
-		#-----------------
-		x_start = x_sorted[0:roll_length:] # data to start with
-		y_start = y_sorted[0:roll_length:]
-
-		para = np.polyfit(x_start, y_start, 1)
-		residual = y_start - np.polyval(para, x_start)
-		stddev = np.std(residual)
-		tolerance = stddev * (1 + per_tol) # upper limit of stddev
-
-		i=1
-		while ((stddev<tolerance)&(i<=len(x_sorted) )) :
-		    x_select = x_sorted[0:roll_length+i:]
-		    y_select = y_sorted[0:roll_length+i:]
-		    para = np.polyfit(x_select,y_select,1)
-		    # calculate rolling residual
-		    x_last = x_sorted[i:roll_length+i:] # crop the last roll_length points from included data
-		    y_last = y_sorted[i:roll_length+i:]
-		    residual = y_last - np.polyval(para, x_last)
-		    stddev = np.std(residual)
-		    i+=1
-		
-		return para, roll_length+i
+		para, fit_length = func.curve_linfit(x, y, reverse=reverse, roll_length=roll_length, per_tol=per_tol)
+		if pltflag:
+			fig,ax=plt.subplots(1,1,figsize=figsize)
+			lines=Plotting.fitCheck_curve_linfit(ax,self,fitmode,reverse,para,fit_length,markersize=markersize,linewidth=linewidth,legloc=legloc,bbox_to_anchor=bbox_to_anchor,legsize=legsize)
+			return para, fit_length, fig, ax, lines
+		else:
+			return para, fit_length
 #=======================================================================
 	def plot(self,pltmode,subplots_layout=None,figsize=(12,7),wspace=0.4,hspace=0.3,fillstyle='full',iter_color=0,iter_marker=0,iter_linestyle=0,markeredgewidth=0.5,markersize=4,linewidth=1,legflag=True,legloc='lower left',bbox_to_anchor=(0,1),legsize=10):
 		'''
