@@ -15,18 +15,19 @@ import Functions as func
 #=======================================================================
 class freqSweep(object):
 	'''
-	2019-08-02 10:14
+	2023-01-16 13:19
 	Class of a single sweep.
 	The sweep column headers are converted to lower cases when assigned to attributes, without underscore in front. Other attributes start with one underscore.
 	This class assumes that its instance and the log files have different headers for all their data columns.
 	Syntax:
 	-------
-	self=freqSweep(filepath,[fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
+	self=freqSweep(filepath,[fold=dict(),logname=None,header_rename=None,mainChannel='',correctFunc=utl.gainCorrect,normByParam='VLowVpp'])
 	Parameters:
 	-----------
 	filepath: str, file path of the loaded sweep file.
 	fold: dict, divide a specified attribute by a given number, e.g. {'x':-1} will divide self.x by -1.
 	logname: str, log_file_name in which this file's metadata is stored.
+	header_rename: dict, all keys and values should be str. When given, duplicate the attributes self.key and name them self.value. e.g., header_name={'Freq':'f', 'x2':'x'} will create self.f using self.freq, and self.x using self.x2.
 	mainChannel: str, used when there is no 'f/x/y/r' in the data, and the columns labeled as 'fstr/xstr/ystr/rstr' are to be treated as 'f/x/y/r', mainChannel="the string 'str' that will be appended to 'f/x/y/r' ".
 	correctFunc: function, gain correcting function accounting for frequency rolloff of the lock in, etc.; used when 'g(n)x/y/r' are called.
 	normByParam: str, when '(g)nx/y/r' are called, they will be divided ("normalized") by this named attribute of the instance.
@@ -46,7 +47,7 @@ class freqSweep(object):
 	--when called:
 	self.(g)(n)x/y/r: pandas.Series, if x,y,r exist, they can be gain-corrected with the given correctFunc to account for lockin rolloff, etc.; they can be normalized by the given attribute specified by normByParam; 'gn' can appear together meaning both methods are implemented.
         '''
-	def __init__(self,filepath,fold=dict(),logname=None,mainChannel='',correctFunc=utl.gainCorrect,normByParam='VLowVpp'):
+	def __init__(self,filepath,fold=dict(),logname=None,header_rename=None,mainChannel='',correctFunc=utl.gainCorrect,normByParam='VLowVpp'):
 		self._filename=ntpath.basename(filepath)
 		self._content=pd.read_csv(filepath,delim_whitespace=True)
 		self._gcorrect=correctFunc
@@ -58,11 +59,15 @@ class freqSweep(object):
 			setattr(self,name.lower(),self._content[name]) 
 		# divide specified attribute by fold[name]
 
-		if mainChannel != '':
+		if header_rename is not None: # if header_rename is given, the user can create duplicate attributes by renaming some of the columns in the raw data, this allows the user to create f/x/y/r attributes if they are named differently in the data
+			for key in header_rename:
+			    setattr(self, header_rename[key], self._content[key])
+		elif mainChannel != '': # if header_rename is None, assign f/x/y/r by searching for f/x/y/r+mainChannel appendix
 			setattr(self,'f',self._content['f'+mainChannel])
 			setattr(self,'x',self._content['x'+mainChannel])
 			setattr(self,'y',self._content['y'+mainChannel])
 			setattr(self,'r',self._content['r'+mainChannel])
+		# if header_rename is None, and mainChannel is an empty string, then the data should contain 'f','x','y','r' as columns
 
 		for name in fold:
 			setattr(self,name.lower(),getattr(self,name.lower())/fold[name])
