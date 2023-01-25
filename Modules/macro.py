@@ -261,13 +261,13 @@ def logMean(logname,frange,colname,droplabels=None,dropAxis=1,drop_track=True,me
 #-----------------------------------------------------------------------
 	return df_Mean,df_Std
 #=======================================================================
-def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,header_metadata=None,mainChannel='',fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None):
+def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,header_metadata=None,mainChannel='',fold=dict(),logname=None,header_rename=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None):
 	'''
-	2020-01-20 14:49
+	2023-01-24 12:58
 	Fit FreqSweep type data with lrtz_1simfit method consecutively. Parse fitting result of each fit to the next fit.
 	Syntax:
 	-------
-	result=lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header[,header_metadata=None,mainChannel='',fold=dict(),logname=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None])
+	result=lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header[,header_metadata=None,mainChannel='',fold=dict(),logname=None,header_rename=None,correctFunc=utl.gainCorrect,normByParam='VLowVpp',folds1=None,folds2=None,frange=(-np.inf,np.inf),bounds=(-np.inf,np.inf),pMctCalib=None,mctBranch='low',Pn=34.3934,savename=None])
 	Parameters:
 	-----------
 	device: Device code, e.g. 'h1m','TF1201'.
@@ -276,7 +276,7 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 	p0: Initial fitting parameters for the first file.
 	header: list of str, headers corresponding to p0.
 	header_metadata: list of str, metadata of fitted files read from log.
-	mainChannel,fold,correctFunc,logname: File load parameters; logname is a str representing the full path of the log file.
+	mainChannel,fold,correctFunc,logname,header_rename: File load parameters; logname is a str representing the full path of the log file.
 	pMctCalib/mctBranch/Pn: parameters to update Tmct from MCT calibration and new Pn in the designated branch of melting curve. mctBranch='low' or 'high'.
 	savename: str, result is written to this file.
 	Returns:
@@ -314,7 +314,7 @@ def lrtz_1simfit_batch(device,filenums,fitmode,funcs1,funcs2,sharenum,p0,header,
 		direction=int(np.sign(indexu-indexl+0.5)) # +0.5 so that 0->1
 		piecei=piece.loc[indexl:indexu:direction] # clip piece, order of rows depend on frange pairs, it can go backwards	
 		for filename in piecei['Filename']:
-			data=fswp(dirname+'/'+filename,mainChannel=mainChannel,fold=fold,correctFunc=correctFunc,logname=logname,normByParam=normByParam)
+			data=fswp(dirname+'/'+filename,mainChannel=mainChannel,fold=fold,correctFunc=correctFunc,logname=logname,header_rename=header_rename,normByParam=normByParam)
 			if pMctCalib is not None: # update data.Tmct and its relevant
 				_=data.mctC2T(pMctCalib,branch=mctBranch,Pn=Pn)
 		
