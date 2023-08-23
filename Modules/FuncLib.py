@@ -123,7 +123,7 @@ def lrtzYph_complexdd(f,A,d,f0,phase):
 #=======================================================================
 def lrtzX_complexd_xSqrtf(f,A,re_d,im_d,f0):
 	'''
-	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function is dimensionless;
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function has unit sqrt(Hz).
 	'''
 	f=np.array(f,float)
 	A=float(A)
@@ -135,7 +135,7 @@ def lrtzX_complexd_xSqrtf(f,A,re_d,im_d,f0):
 #=======================================================================
 def lrtzY_complexd_xSqrtf(f,A,re_d,im_d,f0):
 	'''
-	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function is dimensionless;
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function has unit sqrt(Hz).
 	'''
 	f=np.array(f,float)
 	A=float(A)
@@ -147,7 +147,7 @@ def lrtzY_complexd_xSqrtf(f,A,re_d,im_d,f0):
 #=======================================================================
 def lrtzXph_complexd_xSqrtf(f,A,re_d,im_d,f0,phase):
 	'''
-	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function is dimensionless;
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function has unit sqrt(Hz).
 	'''
 	f=np.array(f,float)
 	A=float(A)
@@ -160,7 +160,7 @@ def lrtzXph_complexd_xSqrtf(f,A,re_d,im_d,f0,phase):
 #=======================================================================
 def lrtzYph_complexd_xSqrtf(f,A,re_d,im_d,f0,phase):
 	'''
-	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function is dimensionless;
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function has unit sqrt(Hz).
 	'''
 
 	f=np.array(f,float)
@@ -174,7 +174,7 @@ def lrtzYph_complexd_xSqrtf(f,A,re_d,im_d,f0,phase):
 #=======================================================================
 def lrtzXph_complexdd_xSqrtf(f,A,d,f0,phase):
 	'''
-	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( d + i*d )*sqrt(f), this means that the d in this function is dimensionless;
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( d + i*d )*sqrt(f), this means that the d in this function has unit sqrt(Hz).
 	'''
 	f=np.array(f,float)
 	A=float(A)
@@ -186,7 +186,7 @@ def lrtzXph_complexdd_xSqrtf(f,A,d,f0,phase):
 #=======================================================================
 def lrtzYph_complexdd_xSqrtf(f,A,d,f0,phase):
 	'''
-	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( d + i*d )*sqrt(f), this means that the d in this function is dimensionless;
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( d + i*d )*sqrt(f), this means that the d in this function has unit sqrt(Hz).
 	'''
 	f=np.array(f,float)
 	A=float(A)
