@@ -656,7 +656,7 @@ def curve_linfit(x, y, reverse=False, roll_length=20, per_tol=1):
 	Returns:
 	--------
 	para: list, linear fit parameters [slope, intercept].
-	roll_length: float, length of the used data for the final fit.
+	roll_length: int, length of the used data for the final fit.
 	'''
 	x_sorted = sorted(x, reverse=reverse)
 	y_sorted = [ys for _,ys in sorted(zip(x, y), reverse=reverse)]
@@ -683,6 +683,53 @@ def curve_linfit(x, y, reverse=False, roll_length=20, per_tol=1):
 	    stddev = np.std(residual)
 	
 	return para, roll_length+i
+#=======================================================================
+def curve_linfit_fixSlope(x, y, slope, reverse=False, roll_length=20, per_tol=1):
+	'''
+	2023-07-14 17:49
+	Do a linear fit to the head or tail of a 2d curve while keeping the slope of the linear function constant in order to obtain the intercept. The program starts by linear fitting the first roll_length of points at the head/tail of the curve, and record the std deviation. Then increase roll_length while keep linear fitting the data. The program stops when the std deviation has changed more than the given percentage tolerance.
+	Syntax:
+	-------
+	intercept, roll_length = curve_linfit_fixSlope(x, y, slope[, reverse=False, roll_length=20, per_tol=1])
+	Parameters:
+	-----------
+	x,y: lists or np.arrays, curve data.
+	slope: float, the slope of the linear function.
+	reverse: Boolean, sort x and y according to reverse, False is ascending x, True is descending x.
+	roll_length: float, rolling length, the number of points for the initial linear fit.
+	per_tol: float, percentage tolerance threshold before another linear fit is called impossible.
+	Returns:
+	--------
+	intercept: float, linear fitted intercept value.
+	roll_length: int, length of the used data for the final fit.
+	'''
+	x_sorted = sorted(x, reverse=reverse)
+	y_sorted = [ys for _,ys in sorted(zip(x, y), reverse=reverse)]
+	x_sorted, y_sorted = np.asarray(x_sorted), np.asarray(y_sorted)
+
+	#-----------------
+	x_start = x_sorted[0:roll_length:] # data to start with
+	y_start = y_sorted[0:roll_length:]
+
+	intercept = np.mean(y_start)-slope*np.mean(x_start) # this is mathematically rigorous, you can prove it by minimizing the stddev
+	residual = y_start - slope*x_start - intercept
+	stddev = np.std(residual)
+	tolerance = stddev * (1 + per_tol) # upper limit of stddev
+
+	i=0
+	while ((stddev<tolerance)&(roll_length+i+1<=len(x_sorted) )) :
+	    i+=1
+	    x_select = x_sorted[0:roll_length+i:]
+	    y_select = y_sorted[0:roll_length+i:]
+	    residual = y_select - slope*x_select - intercept
+
+	    # calculate rolling residual
+	    x_last = x_sorted[i:roll_length+i:] # crop the last roll_length points from included data
+	    y_last = y_sorted[i:roll_length+i:]
+	    residual = y_last - slope*x_last - intercept
+	    stddev = np.std(residual)
+	
+	return intercept, roll_length+i
 #=======================================================================
 
 

@@ -34,9 +34,11 @@ def lrtzX_complexd(f,A,re_d,im_d,f0):
 	'''
 	f=np.array(f,float)
 	A=float(A)
-	d=float(d)
+	re_d=float(re_d)
+	im_d=float(im_d)
 	f0=float(f0)
-	x=A*d*f/4/pi**2/((re_d*f)**2+(f0**2-im_d*f-f**2)**2)
+	x=A*re_d*f/4/pi**2/((re_d*f)**2+(f0**2-im_d*f-f**2)**2)
+	return x
 #=======================================================================
 def lrtzY_complexd(f,A,re_d,im_d,f0):
 	'''
@@ -44,9 +46,11 @@ def lrtzY_complexd(f,A,re_d,im_d,f0):
 	'''
 	f=np.array(f,float)
 	A=float(A)
-	d=float(d)
+	re_d=float(re_d)
+	im_d=float(im_d)
 	f0=float(f0)
-	x=A*(f0**2-im_d*f-f**2)/4/pi**2/((re_d*f)**2+(f0**2-im_d*f-f**2)**2)
+	y=A*(f0**2-im_d*f-f**2)/4/pi**2/((re_d*f)**2+(f0**2-im_d*f-f**2)**2)
+	return y
 #=======================================================================
 def lrtzXph(f,A,d,f0,phase):
 	f=np.array(f,float)
@@ -72,7 +76,8 @@ def lrtzXph_complexd(f,A,re_d,im_d,f0,phase):
 	'''
 	f=np.array(f,float)
 	A=float(A)
-	d=float(d)
+	re_d=float(re_d)
+	im_d=float(im_d)
 	f0=float(f0)
 	phase=float(phase)
 	x=lrtzX_complexd(f,A,re_d,im_d,f0)*cos(radians(phase))-lrtzY_complexd(f,A,re_d,im_d,f0)*sin(radians(phase))
@@ -85,7 +90,8 @@ def lrtzYph_complexd(f,A,re_d,im_d,f0,phase):
 
 	f=np.array(f,float)
 	A=float(A)
-	d=float(d)
+	re_d=float(re_d)
+	im_d=float(im_d)
 	f0=float(f0)
 	phase=float(phase)
 	y=lrtzX_complexd(f,A,re_d,im_d,f0)*sin(radians(phase))+lrtzY_complexd(f,A,re_d,im_d,f0)*cos(radians(phase))
@@ -113,6 +119,81 @@ def lrtzYph_complexdd(f,A,d,f0,phase):
 	f0=float(f0)
 	phase=float(phase)
 	y=lrtzX_complexd(f,A,d,d,f0)*sin(radians(phase))+lrtzY_complexd(f,A,d,d,f0)*cos(radians(phase))
+	return y
+#=======================================================================
+def lrtzX_complexd_xSqrtf(f,A,re_d,im_d,f0):
+	'''
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function is dimensionless;
+	'''
+	f=np.array(f,float)
+	A=float(A)
+	re_d=float(re_d)
+	im_d=float(im_d)
+	f0=float(f0)
+	x=A*re_d*f**1.5/4/pi**2/((re_d*f**1.5)**2+(f0**2-im_d*f**1.5-f**2)**2)
+	return x
+#=======================================================================
+def lrtzY_complexd_xSqrtf(f,A,re_d,im_d,f0):
+	'''
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function is dimensionless;
+	'''
+	f=np.array(f,float)
+	A=float(A)
+	re_d=float(re_d)
+	im_d=float(im_d)
+	f0=float(f0)
+	y=A*(f0**2-im_d*f**1.5-f**2)/4/pi**2/((re_d*f**1.5)**2+(f0**2-im_d*f**1.5-f**2)**2)
+	return y
+#=======================================================================
+def lrtzXph_complexd_xSqrtf(f,A,re_d,im_d,f0,phase):
+	'''
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function is dimensionless;
+	'''
+	f=np.array(f,float)
+	A=float(A)
+	re_d=float(re_d)
+	im_d=float(im_d)
+	f0=float(f0)
+	phase=float(phase)
+	x=lrtzX_complexd_xSqrtf(f,A,re_d,im_d,f0)*cos(radians(phase))-lrtzY_complexd_xSqrtf(f,A,re_d,im_d,f0)*sin(radians(phase))
+	return x
+#=======================================================================
+def lrtzYph_complexd_xSqrtf(f,A,re_d,im_d,f0,phase):
+	'''
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( re(d) + im(d) )*sqrt(f), this means that the d in this function is dimensionless;
+	'''
+
+	f=np.array(f,float)
+	A=float(A)
+	re_d=float(re_d)
+	im_d=float(im_d)
+	f0=float(f0)
+	phase=float(phase)
+	y=lrtzX_complexd_xSqrtf(f,A,re_d,im_d,f0)*sin(radians(phase))+lrtzY_complexd_xSqrtf(f,A,re_d,im_d,f0)*cos(radians(phase))
+	return y
+#=======================================================================
+def lrtzXph_complexdd_xSqrtf(f,A,d,f0,phase):
+	'''
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( d + i*d )*sqrt(f), this means that the d in this function is dimensionless;
+	'''
+	f=np.array(f,float)
+	A=float(A)
+	d=float(d)
+	f0=float(f0)
+	phase=float(phase)
+	x=lrtzX_complexd_xSqrtf(f,A,d,d,f0)*cos(radians(phase))-lrtzY_complexd_xSqrtf(f,A,d,d,f0)*sin(radians(phase))
+	return x
+#=======================================================================
+def lrtzYph_complexdd_xSqrtf(f,A,d,f0,phase):
+	'''
+	Lorentzian with complex damping coefficient: gamma/mass = 2*pi*( d + i*d )*sqrt(f), this means that the d in this function is dimensionless;
+	'''
+	f=np.array(f,float)
+	A=float(A)
+	d=float(d)
+	f0=float(f0)
+	phase=float(phase)
+	y=lrtzX_complexd_xSqrtf(f,A,d,d,f0)*sin(radians(phase))+lrtzY_complexd_xSqrtf(f,A,d,d,f0)*cos(radians(phase))
 	return y
 #=======================================================================
 def lrtzRR(f,A,d,f0):
