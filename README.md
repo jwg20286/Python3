@@ -1,4 +1,4 @@
-Python modules used for data analyses at Lee group, UF.
+Python modules used for data analyses.
 =====
 
 > Self referencing during import has been avoided.
